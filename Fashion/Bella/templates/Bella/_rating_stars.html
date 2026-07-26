@@ -1,0 +1,30 @@
+<style>
+  .rating-stars {
+    position: relative;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 2px;
+    color: var(--hairline, #ddd);
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+  .rating-stars-fg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #d9a441;
+  }
+  .rating-count {
+    font-size: 12px;
+    color: var(--stone, #888);
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+<span class="rating-stars" role="img" aria-label="{{ rating|floatformat:1 }} out of 5 stars">
+  <span class="rating-stars-bg">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+  <span class="rating-stars-fg" style="width: {{ percent }}%;">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+</span>{% if count is not None %}<span class="rating-count">({{ count }})</span>{% endif %}

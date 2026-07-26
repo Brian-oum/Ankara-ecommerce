@@ -4,7 +4,7 @@
   --ink: #1C1B17;
   --ink-soft: #4A473E;
   --hairline: #D8D2C2;
-  --bramble: #6E2A2A;
+  --bramble: #0F80C4;
   --bramble-dark: #521E1E;
   --stone: #8A8371;
   --white: #FFFFFF;
@@ -90,7 +90,7 @@ img { max-width: 100%; display: block; }
 }
 
 .logo-mark {
-  height: 34px;
+  height: 50px;
   width: auto;
   display: block;
   flex-shrink: 0;
@@ -898,7 +898,84 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 24px 48px -28px rgba(28, 27, 23, 0.28);
   transform: translateY(-3px);
 }
+/* =========================================================================
+   NEW — wishlist heart button overlaid on product cards (catalogue grid
+   and the "You may also like" row). Wrap card + button share
+   .product-card-wrap as a positioning context.
+   ========================================================================= */
+.product-card-wrap {
+  position: relative;
+}
 
+.product-card-wrap .product-card {
+  height: 100%;
+}
+
+.wishlist-heart {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 16px -8px rgba(28, 27, 23, 0.35);
+  transition: background .15s, color .15s, transform .15s;
+}
+
+.wishlist-heart:hover {
+  background: var(--white);
+  transform: scale(1.06);
+}
+
+.wishlist-heart svg { pointer-events: none; }
+
+.wishlist-heart.is-active {
+  color: var(--bramble);
+}
+
+.wishlist-heart.is-active svg {
+  fill: var(--bramble);
+}
+
+.wishlist-heart:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* =========================================================================
+   NEW — the "Wishlist" toggle button next to Add to bag on the detail page
+   ========================================================================= */
+.detail-wishlist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.detail-wishlist-btn svg { flex-shrink: 0; }
+
+.detail-wishlist-btn.is-active {
+  border-color: var(--bramble);
+  color: var(--bramble);
+  background: transparent;
+}
+
+.detail-wishlist-btn.is-active svg { fill: var(--bramble); }
+
+.detail-wishlist-btn:disabled { opacity: 0.6; cursor: default; }
+
+@media (max-width: 480px) {
+  .qty-row { flex-wrap: wrap; }
+  .detail-wishlist-btn { width: 100%; justify-content: center; }
+}
 .product-index {
   font-family: 'Fraunces', serif;
   font-size: 14px;
@@ -958,8 +1035,14 @@ img { max-width: 100%; display: block; }
   gap: 64px;
 }
 
+/* =========================================================================
+   REPLACE the existing .product-detail-image rule with this — caps the
+   image height instead of letting it stretch full column height.
+   ========================================================================= */
 .product-detail-image {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 3;
+  max-height: 420px;
+  width: 100%;
   background: #EDE7D8;
   border: 1px solid var(--hairline);
   display: flex;
@@ -969,6 +1052,78 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
 }
 .product-detail-image img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (max-width: 860px) {
+  .product-detail-image { max-height: 320px; }
+}
+
+/* =========================================================================
+   NEW — styled product description (replaces the plain <p class="lede">).
+   Renders paragraphs with readable spacing and turns "- " bullet lines
+   (typed in the admin) into an actual list with the site's gold dot
+   marker, matching the .expertise-list treatment used elsewhere.
+   ========================================================================= */
+.product-detail-description {
+  margin-bottom: 24px;
+}
+
+.product-detail-description p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+  max-width: 52ch;
+}
+
+.product-detail-description p:last-child { margin-bottom: 0; }
+
+.product-detail-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-detail-list li {
+  position: relative;
+  padding-left: 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.product-detail-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+/* =========================================================================
+   NEW — "You may also like" recommendations row below the detail grid.
+   Reuses .product-card/.product-thumb but on a 4-up grid, dialed back
+   to 3-up on tablet and stacked on mobile via the existing breakpoints.
+   ========================================================================= */
+.related-products .product-grid--related {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 992px) {
+  .related-products .product-grid--related { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 860px) {
+  .related-products .product-grid--related { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .related-products .product-grid--related { grid-template-columns: 1fr; }
+}
+
 
 .product-detail-price { font-size: 24px; color: var(--bramble); margin-bottom: 24px; }
 
@@ -1100,6 +1255,14 @@ img { max-width: 100%; display: block; }
   width: 100%;
 }
 
+.variant-picker { margin: 16px 0; }
+.variant-label { font-size: 13px; color: var(--stone); display: block; margin-bottom: 8px; }
+.variant-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.variant-pill { border: 1px solid var(--hairline); padding: 8px 14px; font-size: 14px; cursor: pointer; position: relative; }
+.variant-pill.is-selected { border-color: var(--stone); background: var(--white); font-weight: 600; }
+.variant-pill.is-disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
+.variant-pill input { position: absolute; opacity: 0; }
+.variant-oos { font-size: 11px; margin-left: 4px; }
 .category-card .category-icon {
   width: 42px;
   height: 42px;
@@ -1958,6 +2121,241 @@ img { max-width: 100%; display: block; }
     transition-delay: 0s !important;
   }
 }
+
+/* =========================================================================
+   ABOUT PAGE — mission & vision, impact stats, core values
+   ========================================================================= */
+
+/* ---- mission & vision: photo pair on the left, copy on the right, same
+   composition as the story section above it -------------------------------- */
+.about-mission { padding-top: 24px; }
+
+.about-mission-row {
+  display: grid;
+  grid-template-columns: 0.95fr 1fr;
+  align-items: center;
+  gap: 72px;
+}
+
+.about-mission-media {
+  position: relative;
+}
+
+/* two photos, diagonally overlapping: a straight portrait bleeding off
+   the top-right edge, and a larger, slightly rotated photo bleeding off
+   the bottom-left edge and layered on top — matches the reference
+   composition; the whole pair sits in the left column via the grid. */
+.mv-duo {
+  position: relative;
+  height: 480px;
+}
+
+.mv-duo-photo {
+  position: absolute;
+  overflow: hidden;
+  border: 6px solid var(--ivory);
+  box-shadow: 0 22px 44px -18px rgba(28, 27, 23, 0.4);
+  border-radius: 14px;
+}
+
+.mv-duo-photo .placeholder-slide {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(160deg, #EFE9DA 0%, #DCD3BC 100%);
+}
+
+.mv-duo-photo .placeholder-slide span {
+  margin: 16px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+/* a — straight portrait, top-right, bleeds off the top and right edges */
+.mv-duo-a {
+  top: 0;
+  left: 38%;
+  width: 62%;
+  height: 46%;
+  z-index: 1;
+}
+
+/* b — larger photo, bottom-left, rotated, bleeds off the left and
+   bottom edges, layered in front of a */
+.mv-duo-b {
+  top: 38%;
+  left: 0;
+  width: 95%;
+  height: 62%;
+  transform: rotate(-6deg);
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .about-mission-row { grid-template-columns: 1fr; gap: 40px; }
+  .about-mission-media { order: 1; }
+  .about-mission-copy { order: 2; }
+  .mv-duo { height: 420px; }
+}
+
+@media (max-width: 520px) {
+  .mv-duo { height: 360px; }
+  .mv-duo-a { width: 68%; left: 30%; }
+  .mv-duo-b { width: 92%; }
+}
+
+.mv-block + .mv-block {
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--hairline);
+}
+
+.mv-block-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.mv-block-head .icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mv-block-head .icon-circle svg {
+  width: 16px;
+  height: 16px;
+  color: var(--bramble);
+}
+
+.mv-block-head h3 { margin: 0; font-size: clamp(20px, 2vw, 24px); }
+
+.mv-block p {
+  color: var(--ink-soft);
+  max-width: 50ch;
+  margin: 0;
+}
+
+/* ---- impact: four animated counters in one floating card ---------------- */
+.impact-section { padding: 96px 0; }
+
+.impact-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: 0 28px 54px -22px rgba(28, 27, 23, 0.18);
+  overflow: hidden;
+}
+
+.impact-stat {
+  padding: 40px 28px;
+  text-align: center;
+  border-right: 1px solid var(--hairline);
+}
+
+.impact-stat:last-child { border-right: none; }
+
+.impact-stat svg {
+  width: 24px;
+  height: 24px;
+  color: var(--bramble);
+  margin: 0 auto 14px;
+  display: block;
+}
+
+.impact-stat .num {
+  font-family: 'Fraunces', serif;
+  font-size: 40px;
+  color: var(--ink);
+  display: block;
+}
+
+.impact-stat .label {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stone);
+  display: block;
+  margin-top: 8px;
+}
+
+@media (max-width: 860px) {
+  .impact-stats { grid-template-columns: repeat(2, 1fr); }
+  .impact-stat { border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+  .impact-stat:nth-child(2n) { border-right: none; }
+  .impact-stat:nth-last-child(-n+2) { border-bottom: none; }
+}
+
+@media (max-width: 480px) {
+  .impact-stats { grid-template-columns: 1fr; }
+  .impact-stat { border-right: none; }
+}
+
+/* ---- core values: 7-item icon grid --------------------------------------- */
+.values-section { padding: 96px 0 108px; }
+
+.values-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.value-card {
+  background: var(--ivory);
+  border: 1px solid var(--hairline);
+  padding: 32px 28px;
+  transition: box-shadow .2s ease, border-color .2s ease, transform .2s ease;
+}
+
+.value-card:hover {
+  border-color: var(--stone);
+  box-shadow: 0 24px 48px -28px rgba(28, 27, 23, 0.28);
+  transform: translateY(-3px);
+}
+
+.value-card .icon-circle-lg {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.value-card .icon-circle-lg svg {
+  width: 20px;
+  height: 20px;
+  color: var(--bramble);
+}
+
+.value-card h3 { font-size: 18px; margin-bottom: 8px; }
+
+.value-card p {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin: 0;
+}
+
+@media (max-width: 992px) {
+  .values-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 560px) {
+  .values-grid { grid-template-columns: 1fr; }
+}
+
 /* =========================================================================
    CONTACT PAGE — map-pin hero + two-column details/social + form
    ========================================================================= */

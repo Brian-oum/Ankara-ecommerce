@@ -13,10 +13,41 @@ from .authentication import JengaAuthentication
 from .cart import Cart
 from .wishlist import Wishlist
 from .forms import CheckoutForm, ContactForm
-from .models import Product, Category, Order, OrderItem, Payment, ContactMessage
+from .models import (
+    Product, ProductVariant, Category, Order, OrderItem, Payment, ContactMessage,
+    ProductReview, StoreReview,
+)
 from .services import JengaClient, generate_reference
 
 logger = logging.getLogger(__name__)
+
+
+def _parse_review_submission(request):
+    """
+    Shared name/rating/comment parsing for both product and store
+    review forms - anyone can submit (no account needed), so this is
+    plain manual validation rather than a ModelForm.
+    Returns (name, email, rating, comment, errors).
+    """
+    name = (request.POST.get("name") or "").strip()
+    email = (request.POST.get("email") or "").strip()
+    comment = (request.POST.get("comment") or "").strip()
+
+    errors = []
+    if not name:
+        errors.append("Please tell us your name.")
+
+    rating = None
+    raw_rating = request.POST.get("rating")
+    try:
+        rating = int(raw_rating)
+        if rating < 1 or rating > 5:
+            raise ValueError
+    except (TypeError, ValueError):
+        errors.append("Please choose a star rating.")
+        rating = None
+
+    return name, email, rating, comment, errors
 
 
 # ---- storefront pages -------------------------------------------------
@@ -33,11 +64,19 @@ def home(request):
     hero_thumb_a = [hero_pool[1], hero_pool[2], hero_pool[0]]
     hero_thumb_b = [hero_pool[2], hero_pool[0], hero_pool[1]]
 
+    wishlist_ids = set(Wishlist(request).product_ids)
+    store_reviews = list(StoreReview.approved()[:6])
+
     return render(request, "Bella/home.html", {
         "featured_products": featured_products,
         "hero_main": hero_main,
         "hero_thumb_a": hero_thumb_a,
         "hero_thumb_b": hero_thumb_b,
+        "wishlist_ids": wishlist_ids,
+        "store_reviews": store_reviews,
+        "store_rating": StoreReview.average_rating(),
+        "store_rating_percent": StoreReview.average_rating_percent(),
+        "store_review_count": StoreReview.review_count(),
     })
 
 
@@ -57,17 +96,55 @@ def product_list(request):
     if query:
         products = products.filter(name__icontains=query)
 
+    wishlist_ids = set(Wishlist(request).product_ids)
+
     return render(request, "Bella/products_list.html", {
         "products": products,
         "categories": categories,
         "active_category": category_slug,
         "query": query or "",
+        "wishlist_ids": wishlist_ids,
     })
 
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug, is_active=True)
-    return render(request, "Bella/product_detail.html", {"product": product})
+
+    if request.method == "POST":
+        name, email, rating, comment, errors = _parse_review_submission(request)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            ProductReview.objects.create(
+                product=product, name=name, email=email, rating=rating, comment=comment
+            )
+            messages.success(request, "Thanks for your review!")
+        return redirect("product_detail", slug=product.slug)
+
+    variants = product.ordered_variants() if product.has_variants() else None
+
+    recommended = Product.objects.filter(is_active=True).exclude(id=product.id)
+    if product.category:
+        recommended = recommended.filter(category=product.category)
+    recommended = list(recommended[:4])
+    if len(recommended) < 4:
+        # Not enough in the same category - top up with other active products.
+        seen_ids = {product.id, *(p.id for p in recommended)}
+        extra = Product.objects.filter(is_active=True).exclude(id__in=seen_ids)[:4 - len(recommended)]
+        recommended += list(extra)
+
+    wishlist_ids = set(Wishlist(request).product_ids)
+
+    return render(request, "Bella/product_detail.html", {
+        "product": product,
+        "variants": variants,
+        "default_variant": product.default_variant(),
+        "recommended_products": recommended,
+        "wishlist_ids": wishlist_ids,
+        "in_wishlist": product.id in wishlist_ids,
+        "reviews": product.approved_reviews(),
+    })
 
 
 def contact(request):
@@ -82,6 +159,29 @@ def contact(request):
     return render(request, "Bella/contact.html", {"form": form})
 
 
+def store_reviews(request):
+    """
+    Overall store/service rating - not tied to any one product. Same
+    open-submission, admin-approval flow as product reviews.
+    """
+    if request.method == "POST":
+        name, email, rating, comment, errors = _parse_review_submission(request)
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            StoreReview.objects.create(name=name, email=email, rating=rating, comment=comment)
+            messages.success(request, "Thanks for the feedback! It'll appear once we've approved it.")
+        return redirect("store_reviews")
+
+    return render(request, "Bella/reviews.html", {
+        "reviews": StoreReview.approved(),
+        "average_rating": StoreReview.average_rating(),
+        "average_rating_percent": StoreReview.average_rating_percent(),
+        "review_count": StoreReview.review_count(),
+    })
+
+
 # ---- cart ---------------------------------------------------------------
 
 def _is_ajax(request):
@@ -93,11 +193,13 @@ def _cart_payload(cart):
     items = []
     for item in cart:
         product = item["product"]
+        variant = item.get("variant")
         price = item["price"]
         quantity = item["quantity"]
         items.append({
             "product_id": product.id,
-            "name": product.name,
+            "variant_id": variant.id if variant else None,
+            "name": f"{product.name} — {variant.name}" if variant else product.name,
             "price": str(price),
             "quantity": quantity,
             "subtotal": str(price * quantity),
@@ -122,12 +224,25 @@ def cart_summary(request):
 @require_POST
 def cart_add(request, product_id):
     product = get_object_or_404(Product, id=product_id, is_active=True)
+
+    variant = None
+    if product.has_variants():
+        variant_id = request.POST.get("variant_id")
+        variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
+        if variant is None:
+            error = "Please choose an option before adding to your bag."
+            if _is_ajax(request):
+                return JsonResponse({"error": error}, status=400)
+            messages.error(request, error)
+            return redirect(request.POST.get("next") or reverse("product_detail", args=[product.slug]))
+
     cart = Cart(request)
     quantity = int(request.POST.get("quantity", 1))
-    cart.add(product=product, quantity=quantity)
+    cart.add(product=product, quantity=quantity, variant=variant)
+    label = f"{product.name} ({variant.name})" if variant else product.name
     if _is_ajax(request):
         return JsonResponse(_cart_payload(cart))
-    messages.success(request, f"{product.name} added to your bag.")
+    messages.success(request, f"{label} added to your bag.")
     return redirect(request.POST.get("next") or "cart_detail")
 
 
@@ -321,9 +436,35 @@ def checkout(request):
 
 
 def success(request):
+    """
+    Right after checkout, we only know the order via the session. Hand
+    off immediately to order_confirmation(), which is keyed by
+    order_reference instead - that's the URL that's actually safe to
+    bookmark, reload, or share, and it keeps working no matter when or
+    how the order's status changes later (Jenga callback or a manual
+    edit in admin).
+    """
     order_reference = request.session.get("last_order_reference")
-    order = Order.objects.filter(order_reference=order_reference).first() if order_reference else None
-    return render(request, "Bella/success.html", {"order": order})
+    if not order_reference:
+        messages.info(request, "We couldn't find a recent order for this session.")
+        return redirect("product_list")
+    return redirect("order_confirmation", order_reference=order_reference)
+
+
+def order_confirmation(request, order_reference):
+    """
+    Durable, session-independent confirmation page. Anyone with the
+    order_reference (the customer revisiting/bookmarking this URL, or
+    an admin sharing it) always gets an up-to-date WhatsApp link built
+    fresh from the order's current data - it doesn't matter whether the
+    order is Pending or was later marked Completed by the Jenga callback
+    or by hand in Django admin.
+    """
+    order = get_object_or_404(
+        Order.objects.prefetch_related("items__product"), order_reference=order_reference
+    )
+    whatsapp_link = order.get_whatsapp_link()
+    return render(request, "Bella/success.html", {"order": order, "whatsapp_link": whatsapp_link})
 
 
 def test_authentication(request):

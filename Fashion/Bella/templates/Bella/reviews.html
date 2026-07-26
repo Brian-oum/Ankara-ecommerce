@@ -1,0 +1,69 @@
+{% extends "Bella/base.html" %}
+{% block title %}Reviews — Bella{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="display:grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start;">
+    <div>
+      <span class="eyebrow">Reviews</span>
+      <h1>What people say about us</h1>
+
+      {% if review_count %}
+        <p style="margin: 10px 0 24px;">
+          {% include "Bella/_rating_stars.html" with rating=average_rating percent=average_rating_percent count=review_count %}
+          based on {{ review_count }} review{{ review_count|pluralize }}
+        </p>
+      {% endif %}
+
+      {% if reviews %}
+        {% for review in reviews %}
+          <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--hairline);">
+            {% include "Bella/_rating_stars.html" with rating=review.rating percent=review.rating_percent count=None %}
+            {% if review.comment %}<p style="margin: 8px 0;">{{ review.comment }}</p>{% endif %}
+            <cite style="font-style: normal; font-size: 13px; color: var(--stone);">{{ review.name }}</cite>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p style="color: var(--stone);">No reviews yet — be the first to leave one.</p>
+      {% endif %}
+    </div>
+
+    <div>
+      <h2>Leave a review</h2>
+
+      {% if messages %}
+        {% for message in messages %}
+          <p style="color: {% if message.tags == 'error' %}#b3492c{% else %}var(--stone){% endif %};">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+          <label>Your rating</label>
+          {% include "Bella/_star_input.html" with prefix="store-review" %}
+        </div>
+
+        <div class="field">
+          <label for="review-name">Your name</label>
+          <input type="text" id="review-name" name="name" required>
+        </div>
+
+        <div class="field">
+          <label for="review-email">Email (optional, not shown publicly)</label>
+          <input type="email" id="review-email" name="email">
+        </div>
+
+        <div class="field">
+          <label for="review-comment">Your review (optional)</label>
+          <textarea id="review-comment" name="comment" rows="4"></textarea>
+        </div>
+
+        <button type="submit" class="btn">Submit review</button>
+        <p style="color: var(--stone); font-size: 13px; margin-top: 8px;">Reviews are checked before they go live.</p>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

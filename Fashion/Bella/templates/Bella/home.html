@@ -163,19 +163,34 @@
     {% if featured_products %}
       <div class="product-grid">
         {% for product in featured_products %}
-          <a class="product-card" href="{% url 'product_detail' product.slug %}">
-            <span class="product-index">N&deg;{{ forloop.counter|stringformat:"02d" }}</span>
-            <div class="product-thumb">
-              {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}">
-              {% else %}
-                No image
-              {% endif %}
-            </div>
-            {% if product.category %}<span class="product-cat">{{ product.category.name }}</span>{% endif %}
-            <div class="product-name">{{ product.name }}</div>
-            <div class="product-price">KES {{ product.price }}</div>
-          </a>
+          <div class="product-card-wrap">
+            <a class="product-card" href="{% url 'product_detail' product.slug %}">
+              <span class="product-index">N&deg;{{ forloop.counter|stringformat:"02d" }}</span>
+              <div class="product-thumb">
+                {% if product.image %}
+                  <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                  No image
+                {% endif %}
+              </div>
+              {% if product.category %}<span class="product-cat">{{ product.category.name }}</span>{% endif %}
+              <div class="product-name">{{ product.name }}</div>
+              <div class="product-price">KES {{ product.price }}</div>
+              {% include "Bella/_rating_stars.html" with rating=product.average_rating percent=product.average_rating_percent count=product.review_count %}
+            </a>
+
+            <button
+              type="button"
+              class="wishlist-heart {% if product.id in wishlist_ids %}is-active{% endif %}"
+              data-toggle-url="{% url 'wishlist_toggle' product.id %}"
+              aria-label="{% if product.id in wishlist_ids %}Remove from wishlist{% else %}Add to wishlist{% endif %}"
+              aria-pressed="{% if product.id in wishlist_ids %}true{% else %}false{% endif %}"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 21s-7.5-4.7-10-9.3C.6 8.2 2.3 4.5 6 4c2.1-.3 4 .8 6 3 2-2.2 3.9-3.3 6-3 3.7.5 5.4 4.2 4 7.7C19.5 16.3 12 21 12 21z"/>
+              </svg>
+            </button>
+          </div>
         {% endfor %}
       </div>
     {% else %}
@@ -256,34 +271,53 @@
       <div>
         <span class="eyebrow">Client stories</span>
         <h2>Loved by regulars</h2>
+        {% if store_review_count %}
+          <p style="margin-top:6px;">
+            {% include "Bella/_rating_stars.html" with rating=store_rating percent=store_rating_percent count=store_review_count %}
+            based on {{ store_review_count }} review{{ store_review_count|pluralize }}
+          </p>
+        {% endif %}
       </div>
+      <a href="{% url 'store_reviews' %}" class="btn btn-outline">Leave a review</a>
     </div>
 
-    <div class="testimonial-grid">
-      <div class="testimonial">
-        <span class="stars">
-          {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
-        </span>
-        <blockquote>My colorist finally understood exactly what &ldquo;natural but brighter&rdquo; meant. Booking again next month.</blockquote>
-        <cite><strong>Amara N.</strong>Color &amp; Highlights client</cite>
+    {% if store_reviews %}
+      <div class="testimonial-grid">
+        {% for review in store_reviews %}
+          <div class="testimonial">
+            {% include "Bella/_rating_stars.html" with rating=review.rating percent=review.rating_percent count=None %}
+            {% if review.comment %}<blockquote>{{ review.comment }}</blockquote>{% endif %}
+            <cite><strong>{{ review.name }}</strong></cite>
+          </div>
+        {% endfor %}
       </div>
+    {% else %}
+      <div class="testimonial-grid">
+        <div class="testimonial">
+          <span class="stars">
+            {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+          </span>
+          <blockquote>My colorist finally understood exactly what &ldquo;natural but brighter&rdquo; meant. Booking again next month.</blockquote>
+          <cite><strong>Amara N.</strong>Color &amp; Highlights client</cite>
+        </div>
 
-      <div class="testimonial">
-        <span class="stars">
-          {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
-        </span>
-        <blockquote>Booked the bridal package on a whim and it turned out to be the best decision of my wedding week.</blockquote>
-        <cite><strong>Faith W.</strong>Bridal client</cite>
-      </div>
+        <div class="testimonial">
+          <span class="stars">
+            {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+          </span>
+          <blockquote>Booked the bridal package on a whim and it turned out to be the best decision of my wedding week.</blockquote>
+          <cite><strong>Faith W.</strong>Bridal client</cite>
+        </div>
 
-      <div class="testimonial">
-        <span class="stars">
-          {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
-        </span>
-        <blockquote>The facial felt like an hour of quiet in the middle of a hectic week. My skin has never looked better.</blockquote>
-        <cite><strong>Brian K.</strong>Facials client</cite>
+        <div class="testimonial">
+          <span class="stars">
+            {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+          </span>
+          <blockquote>The facial felt like an hour of quiet in the middle of a hectic week. My skin has never looked better.</blockquote>
+          <cite><strong>Brian K.</strong>Facials client</cite>
+        </div>
       </div>
-    </div>
+    {% endif %}
   </div>
 </section>
 
@@ -332,5 +366,44 @@
     </div>
   </div>
 </section>
+
+<script>
+(function () {
+  function getCookie(name) {
+    const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
+  document.querySelectorAll(".wishlist-heart").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (btn.disabled) return;
+      btn.disabled = true;
+
+      fetch(btn.dataset.toggleUrl, {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "X-CSRFToken": getCookie("csrftoken"),
+        },
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          btn.classList.toggle("is-active", !!data.added);
+          btn.setAttribute("aria-pressed", data.added ? "true" : "false");
+          btn.setAttribute("aria-label", data.added ? "Remove from wishlist" : "Add to wishlist");
+
+          document.querySelectorAll(".wishlist-count").forEach(function (el) {
+            el.textContent = data.count;
+          });
+        })
+        .catch(function () {})
+        .finally(function () { btn.disabled = false; });
+    });
+  });
+})();
+</script>
 
 {% endblock %}
