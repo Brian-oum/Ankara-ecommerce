@@ -1,0 +1,39 @@
+{% extends "Bella/base.html" %}
+{% block title %}{{ product.name }} — Bella{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container product-detail-grid">
+    <div class="product-detail-image">
+      {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+      {% else %}
+        No image
+      {% endif %}
+    </div>
+
+    <div>
+      {% if product.category %}<span class="eyebrow">{{ product.category.name }}</span>{% endif %}
+      <h1>{{ product.name }}</h1>
+      <div class="product-detail-price">KES {{ product.price }}</div>
+
+      {% if product.description %}
+        <p class="lede">{{ product.description }}</p>
+      {% endif %}
+
+      {% if product.in_stock %}
+        <form method="post" action="{% url 'cart_add' product.id %}">
+          {% csrf_token %}
+          <div class="qty-row">
+            <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}">
+            <button type="submit" class="btn">Add to bag</button>
+          </div>
+        </form>
+        <p style="color: var(--stone); font-size: 13px;">{{ product.stock }} in stock</p>
+      {% else %}
+        <button class="btn" disabled>Sold out</button>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
