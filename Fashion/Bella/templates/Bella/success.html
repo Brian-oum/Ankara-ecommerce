@@ -1,0 +1,27 @@
+{% extends "Bella/base.html" %}
+{% block title %}Order placed — Bella{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width: 560px; text-align:center; padding: 60px 0;">
+    <span class="eyebrow">Order placed</span>
+    <h1>Check your phone</h1>
+    <p class="lede" style="margin: 0 auto 24px;">We've sent an M-Pesa payment request to your phone. Enter your PIN to complete the order.</p>
+
+    {% if order %}
+      <div class="summary-box" style="text-align:left; margin-bottom: 24px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="color:var(--stone);">Order reference</span>
+          <span>{{ order.order_reference }}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--stone);">Total</span>
+          <span>KES {{ order.total_amount }}</span>
+        </div>
+      </div>
+    {% endif %}
+
+    <a href="{% url 'product_list' %}" class="btn">Continue shopping</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "Bella/base.html" %}
+{% block title %}About — Bella{% endblock %}
+
+{% load static %}
+{% block content %}
+
+<!-- ============================================================
+     ABOUT HERO
+     Badge-circle eyebrow + big serif headline on the left, a single
+     blob-masked studio photo bleeding to the edge on the right.
+     Swap the placeholder-slide div for a real <img> when a studio
+     photo is ready — see comment below.
+============================================================ -->
+<section class="about-hero">
+  <div class="about-hero-inner">
+    <div class="about-hero-copy">
+      <span class="badge-circle">Our<br>Story</span>
+      <h1>Small runs.<br>Real fabric.<br><span class="accent">No noise.</span></h1>
+      <p class="lede">Bella started as a single rack in Nairobi and grew into a studio built around one idea: clothes should last longer than a season.</p>
+      <div class="hero-cta-row">
+        <a href="{% url 'contact' %}" class="btn-pill">
+          <span>Get in touch</span>
+          <span class="btn-pill-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+    <div class="about-hero-visual">
+      <div class="about-hero-photo">
+        <!-- Replace with: <img src="{% static 'images/about-hero.jpg' %}" alt="Inside the Bella studio"> -->
+        <div class="placeholder-slide"><span>Studio photo</span></div>
+      </div>
+      <div class="about-hero-photo-circle">
+        <!-- Replace with: <img src="{% static 'images/about-hero-portrait.jpg' %}" alt="A Bella team member"> -->
+        <div class="placeholder-slide"><span>Portrait</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     STORY / STUDIO SECTION
+     Overlapping photo pair on the left, copy on the right — mirrors
+     the brand's existing "What we make" / "How you pay" content.
+============================================================ -->
+<section class="section about-story fade-up">
+  <div class="container about-story-row">
+    <div class="about-story-media">
+      <div class="about-story-photo">
+        <!-- Replace with: <img src="{% static 'images/about-tailors.jpg' %}" alt="Tailors at work in the Bella studio"> -->
+        <div class="placeholder-slide"><span>Tailors at work</span></div>
+      </div>
+      <div class="about-story-photo-circle">
+        <!-- Replace with: <img src="{% static 'images/about-fitting.jpg' %}" alt="A fitting at Bella"> -->
+        <div class="placeholder-slide"><span>Fitting</span></div>
+      </div>
+    </div>
+    <div class="about-story-copy">
+      <span class="eyebrow">Behind the label</span>
+      <h2>Designed, cut and stitched in Nairobi.</h2>
+      <p>Every piece is designed in-house and produced in limited runs, so what you buy stays part of a small edit rather than a mass line. We work directly with local tailors and prioritise natural fibres.</p>
+      <p>Checkout is powered by M-Pesa through Jenga, so paying for an order is a prompt on your phone — no cards, no delays.</p>
+      <p>Questions about sizing, an order, or a wholesale enquiry? We'll get back to you.</p>
+      <a href="{% url 'contact' %}" class="btn-pill-outline">
+        <span class="btn-pill-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l9 6 9-6M4 5h16v14H4z"/></svg>
+        </span>
+        <span>Talk to us</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     PARTNERS & BRANDS
+     Logos fade in left-to-right, one after another, the first time
+     the row scrolls into view (see .partners-row in style.css and
+     the observer in main.js).
+============================================================ -->
+<section class="section partners-section fade-up">
+  <div class="container" style="max-width: 1160px;">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Who we work with</span>
+        <h2>Partners &amp; brands</h2>
+      </div>
+    </div>
+    <div class="partners-row">
+      <div class="partner-logo" style="--i:0">
+        <!-- Replace with: <img src="{% static 'images/partners/jenga-pay.png' %}" alt="Jenga Pay"> -->
+        <div class="placeholder-slide"><span>Jenga Pay</span></div>
+      </div>
+      <div class="partner-logo" style="--i:1">
+        <!-- Replace with: <img src="{% static 'images/partners/kitenge-collective.png' %}" alt="Kitenge Collective"> -->
+        <div class="placeholder-slide"><span>Kitenge Collective</span></div>
+      </div>
+      <div class="partner-logo" style="--i:2">
+        <!-- Replace with: <img src="{% static 'images/partners/sokoni-textiles.png' %}" alt="Sokoni Textiles"> -->
+        <div class="placeholder-slide"><span>Sokoni Textiles</span></div>
+      </div>
+      <div class="partner-logo" style="--i:3">
+        <!-- Replace with: <img src="{% static 'images/partners/nairobi-design-week.png' %}" alt="Nairobi Design Week"> -->
+        <div class="placeholder-slide"><span>Nairobi Design Week</span></div>
+      </div>
+      <div class="partner-logo" style="--i:4">
+        <!-- Replace with: <img src="{% static 'images/partners/the-loft-studio.png' %}" alt="The Loft Studio"> -->
+        <div class="placeholder-slide"><span>The Loft Studio</span></div>
+      </div>
+      <div class="partner-logo" style="--i:5">
+        <!-- Replace with: <img src="{% static 'images/partners/anga-markets.png' %}" alt="Anga Markets"> -->
+        <div class="placeholder-slide"><span>Anga Markets</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band fade-up" id="book">
+  <div class="container cta-band-inner">
+    <div class="cta-card">
+
+      <div class="cta-phone-panel">
+        <div class="cta-phone">
+          <div class="cta-phone-notch"></div>
+          <div class="cta-phone-screen">
+            <div class="cta-phone-logo">
+              <img src="{% static 'images/logo.png' %}" alt="Luxe Salon &amp; Studio logo">
+            </div>
+            <div class="cta-phone-cycle">
+              <span>Order via WhatsApp</span>
+              <span>DM us on Instagram</span>
+              <span>Call the studio directly</span>
+              <span>Shop the collection online</span>
+            </div>
+          </div>
+          <div class="cta-phone-bar"></div>
+        </div>
+      </div>
+
+      <div class="cta-copy-col">
+        <span class="eyebrow">Ready when you are</span>
+        <h2>Style that speaks for you.</h2>
+        <p>From bridal Ankara pieces to everyday accessories, reach us however works best for you &mdash; WhatsApp, Instagram, a call, or in person &mdash; and let's put your next look together.</p>
+        <div class="cta-band-actions">
+          <a href="{% url 'contact' %}" class="btn-pill">
+            Book Your Appointment
+            <span class="btn-pill-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </a>
+          <a href="#" class="btn-pill-outline">
+            Chat on WhatsApp
+            <span class="btn-pill-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L4 20l1.02-4.46A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 10.5c.3 2.6 2.4 4.7 5 5"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

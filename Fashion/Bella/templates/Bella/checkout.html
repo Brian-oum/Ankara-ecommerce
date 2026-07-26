@@ -1,0 +1,60 @@
+{% extends "Bella/base.html" %}
+{% block title %}Checkout — Bella{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container checkout-grid">
+    <div>
+      <span class="eyebrow">Checkout</span>
+      <h1>Your details</h1>
+
+      {% if form.non_field_errors %}
+        <div class="form-errors">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+          <label for="{{ form.name.id_for_label }}">Full name</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="field-errors">{{ form.name.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="field-errors">{{ form.email.errors|join:", " }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.phone.id_for_label }}">M-Pesa phone number</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div class="field-errors">{{ form.phone.errors|join:", " }}</div>{% endif %}
+          <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an STK push prompt on this number to complete payment.</p>
+        </div>
+
+        <button type="submit" class="btn btn-block">Pay KES {{ cart.get_total_price }} with M-Pesa</button>
+      </form>
+    </div>
+
+    <div class="summary-box">
+      <h3>Order summary</h3>
+      <hr class="divider" style="margin: 16px 0;">
+      {% for item in cart %}
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:14px;">
+          <span>{{ item.product.name }} &times; {{ item.quantity }}</span>
+          <span>KES {{ item.subtotal }}</span>
+        </div>
+      {% endfor %}
+      <hr class="divider" style="margin: 16px 0;">
+      <div style="display:flex; justify-content:space-between; font-family:'Fraunces',serif; font-size:18px;">
+        <span>Total</span>
+        <span>KES {{ cart.get_total_price }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "Bella/base.html" %}
+{% block title %}Products — Bella{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Catalogue</span>
+        <h1>All products</h1>
+      </div>
+      <form method="get" style="display:flex; gap:10px;">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search products…"
+               style="padding:10px 14px; border:1px solid var(--hairline); background:var(--white); font-size:14px;">
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+        <button type="submit" class="btn btn-outline">Search</button>
+      </form>
+    </div>
+
+    {% if categories %}
+      <div class="filter-bar">
+        <a class="filter-pill {% if not active_category %}active{% endif %}" href="{% url 'product_list' %}">All</a>
+        {% for category in categories %}
+          <a class="filter-pill {% if active_category == category.slug %}active{% endif %}"
+             href="?category={{ category.slug }}">{{ category.name }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if products %}
+      <div class="product-grid">
+        {% for product in products %}
+          <a class="product-card" href="{% url 'product_detail' product.slug %}">
+            <span class="product-index">N&deg;{{ forloop.counter|stringformat:"02d" }}</span>
+            <div class="product-thumb">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% else %}
+                No image
+              {% endif %}
+            </div>
+            {% if product.category %}<span class="product-cat">{{ product.category.name }}</span>{% endif %}
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price">KES {{ product.price }}</div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>Nothing here yet</h2>
+        <p>Try a different search, or check back soon.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

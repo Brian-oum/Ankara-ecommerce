@@ -1,0 +1,66 @@
+{% comment %}
+Bespoke line-art of the studio, shown in place of a photograph until real
+studio photos are uploaded through the admin (hero_main). Arched mirror
+stations, pendant lighting and a styling chair — no booking widget, nav
+chrome, or other UI baked into it, matching the brief's "clean image only"
+requirement.
+{% endcomment %}
+<svg class="studio-art" viewBox="0 0 700 680" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of the Luxe studio interior: arched mirror stations with pendant lighting and a styling chair">
+  <defs>
+    <linearGradient id="studioBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EFE7DC"/>
+      <stop offset="100%" stop-color="#D9CBBE"/>
+    </linearGradient>
+    <radialGradient id="studioGlow" cx="50%" cy="0%" r="70%">
+      <stop offset="0%" stop-color="#FBEFD8" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FBEFD8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="700" height="680" fill="url(#studioBg)"/>
+  <rect width="700" height="680" fill="url(#studioGlow)"/>
+
+  <line x1="0" y1="560" x2="700" y2="560" stroke="var(--stone,#8A8371)" stroke-width="1" opacity="0.35"/>
+
+  <g fill="none" stroke="var(--bramble,#6E2A2A)" stroke-width="2.5" opacity="0.85">
+    <path d="M90 560 V330 a80 80 0 0 1 160 0 V560"/>
+    <path d="M320 560 V300 a95 95 0 0 1 190 0 V560"/>
+    <path d="M560 560 V340 a70 70 0 0 1 140 0 V560" opacity="0.5"/>
+  </g>
+
+  <path d="M100 555 V332 a70 70 0 0 1 140 0 V555 Z" fill="#FFFFFF" opacity="0.55"/>
+  <path d="M330 555 V302 a85 85 0 0 1 170 0 V555 Z" fill="#FFFFFF" opacity="0.55"/>
+
+  <g stroke="var(--gold,#B8935A)" stroke-width="1.5">
+    <line x1="170" y1="120" x2="170" y2="230"/>
+    <line x1="415" y1="90" x2="415" y2="210"/>
+  </g>
+  <circle cx="170" cy="238" r="16" fill="#FFF7E8" stroke="var(--gold,#B8935A)" stroke-width="2"/>
+  <circle cx="415" cy="218" r="18" fill="#FFF7E8" stroke="var(--gold,#B8935A)" stroke-width="2"/>
+
+  <g transform="translate(300,470)">
+    <path d="M-46 60 C-46 20 -30 -20 0 -20 C30 -20 46 20 46 60" fill="none" stroke="var(--ink,#1C1B17)" stroke-width="3" opacity="0.8"/>
+    <rect x="-40" y="55" width="80" height="14" rx="6" fill="var(--ink,#1C1B17)" opacity="0.75"/>
+    <line x1="0" y1="69" x2="0" y2="110" stroke="var(--gold,#B8935A)" stroke-width="4"/>
+    <ellipse cx="0" cy="118" rx="34" ry="7" fill="var(--gold,#B8935A)" opacity="0.7"/>
+  </g>
+
+  <g transform="translate(110,470)" opacity="0.75">
+    <rect x="0" y="40" width="70" height="60" fill="none" stroke="var(--ink,#1C1B17)" stroke-width="2"/>
+    <rect x="10" y="20" width="8" height="24" rx="2" fill="var(--bramble,#6E2A2A)" opacity="0.6"/>
+    <rect x="24" y="14" width="8" height="30" rx="2" fill="var(--gold,#B8935A)" opacity="0.6"/>
+    <rect x="38" y="24" width="8" height="20" rx="2" fill="var(--stone,#8A8371)" opacity="0.6"/>
+  </g>
+
+  <g transform="translate(600,430)" stroke="var(--bramble,#6E2A2A)" stroke-width="2" fill="none" opacity="0.5">
+    <path d="M0 130 C-6 90 -4 60 0 30"/>
+    <path d="M0 90 C-30 80 -40 55 -34 30"/>
+    <path d="M0 70 C26 62 34 40 28 18"/>
+    <path d="M0 110 C-22 100 -30 82 -24 60"/>
+  </g>
+
+  <g fill="var(--gold,#B8935A)" opacity="0.8">
+    <path d="M540 90 l4 12 12 4 -12 4 -4 12 -4 -12 -12 -4 12 -4 z"/>
+    <path d="M60 90 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3 z"/>
+  </g>
+</svg>

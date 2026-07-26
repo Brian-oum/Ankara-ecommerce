@@ -1,0 +1,336 @@
+{% extends "Bella/base.html" %}
+{% load static %}
+{% block title %}Luxe Salon & Studio — Your best look, every day{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="container-fluid g-0">
+    <div class="row g-0 align-items-stretch hero-row">
+
+      <!-- copy column -->
+      <div class="col-lg-4 hero-copy-col">
+        <div class="hero-copy">
+          <span class="eyebrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M19 5l-4 4M9 15l-4 4"/></svg>
+            Where beauty meets artistry
+          </span>
+          <h1>Your best look, <span class="accent">every day</span>.</h1>
+          <p class="lede">From stunning hairstyles to flawless makeup, we bring out the most confident you.</p>
+
+          <div class="hero-cta-row">
+            <a href="#book" class="btn-pill">
+              Book Your Appointment
+              <span class="btn-pill-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </span>
+            </a>
+            <button type="button" class="watch-link" data-video-trigger>
+              <span class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              </span>
+              Watch Our Studio
+            </button>
+          </div>
+
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l2.5 6.5L21 11l-6.5 2.5L12 20l-2.5-6.5L3 11l6.5-2.5z"/></svg>
+              <span class="num" data-count="500">0</span>
+              <span class="label">Happy Clients</span>
+            </div>
+            <div class="hero-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 4h10l1 4-6 6-6-6z"/><path d="M9 8l3 12 3-12"/></svg>
+              <span class="num" data-count="15">0</span>
+              <span class="label">Expert Stylists</span>
+            </div>
+            <div class="hero-stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              <span class="num" data-count="8">0</span>
+              <span class="label">Years of Excellence</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- visual column: single cycling image, nothing else -->
+      <div class="col-lg-8 hero-visual-col">
+        <div class="hero-blob">
+          {% for product in hero_main %}
+            <div class="cycle-slide">
+              {% if product and product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% else %}
+                {% include "Bella/_studio_art.html" %}
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="cycle-slide">
+              {% include "Bella/_studio_art.html" %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="hero-feature-strip">
+    <ul class="hero-feature-list">
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c4 2 6 5 6 9a6 6 0 0 1-12 0c0-4 2-7 6-9z"/><path d="M12 12v8"/></svg>
+        Premium Products
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        On-Time Service
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        Personalized Care
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/></svg>
+        Hygienic &amp; Safe
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="section fade-up">
+  <div class="container-wide">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Shop by category</span>
+        <h2>Find your Ankara favorite</h2>
+      </div>
+    </div>
+
+    <div class="category-grid">
+      <a class="category-card" data-cat="jewelry" href="{% url 'product_list' %}">
+        <div class="category-card-body">
+          <span class="category-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="6" r="3"/><path d="M5 21c0-3 3-5 7-5s7 2 7 5"/><path d="M9 12l-2 4M15 12l2 4"/></svg>
+          </span>
+          <h3>Jewelry &amp; Accessories</h3>
+          <span class="count">Earrings, rings &amp; bangles</span>
+        </div>
+      </a>
+
+      <a class="category-card" data-cat="hair" href="{% url 'product_list' %}">
+        <div class="category-card-body">
+          <span class="category-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+          </span>
+          <h3>Hair &amp; Head Accessories</h3>
+          <span class="count">Wigs, bonnets &amp; scrunchies</span>
+        </div>
+      </a>
+
+      <a class="category-card" data-cat="wearables" href="{% url 'product_list' %}">
+        <div class="category-card-body">
+          <span class="category-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/></svg>
+          </span>
+          <h3>Wearables &amp; Hats</h3>
+          <span class="count">Collars, bucket &amp; sun hats</span>
+        </div>
+      </a>
+
+      <a class="category-card" data-cat="home" href="{% url 'product_list' %}">
+        <div class="category-card-body">
+          <span class="category-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg>
+          </span>
+          <h3>Home &amp; Bags</h3>
+          <span class="count">Notebooks, pillows &amp; pouches</span>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section fade-up">
+  <div class="container-wide">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Take home</span>
+        <h2>Products we love</h2>
+      </div>
+      <a href="{% url 'product_list' %}" class="btn btn-outline">View all products</a>
+    </div>
+
+    {% if featured_products %}
+      <div class="product-grid">
+        {% for product in featured_products %}
+          <a class="product-card" href="{% url 'product_detail' product.slug %}">
+            <span class="product-index">N&deg;{{ forloop.counter|stringformat:"02d" }}</span>
+            <div class="product-thumb">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              {% else %}
+                No image
+              {% endif %}
+            </div>
+            {% if product.category %}<span class="product-cat">{{ product.category.name }}</span>{% endif %}
+            <div class="product-name">{{ product.name }}</div>
+            <div class="product-price">KES {{ product.price }}</div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h2>No products yet</h2>
+        <p>Add some products from the Django admin to see them here.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section services-section fade-up">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Handcrafted in Ankara</span>
+        <h2>Our Expertise</h2>
+      </div>
+    </div>
+
+    <div class="expertise-grid">
+      <div class="expertise-category">
+        <span class="expertise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="6" r="3"/><path d="M5 21c0-3 3-5 7-5s7 2 7 5"/><path d="M9 12l-2 4M15 12l2 4"/></svg>
+        </span>
+        <h3>Jewelry &amp; Accessories</h3>
+        <ul class="expertise-list">
+          <li>Ankara earrings and statement neckpieces</li>
+          <li>Ankara bracelets and bangles</li>
+          <li>Ankara luxury rings</li>
+          <li>Ankara belts</li>
+        </ul>
+      </div>
+
+      <div class="expertise-category">
+        <span class="expertise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        </span>
+        <h3>Hair &amp; Head Accessories</h3>
+        <ul class="expertise-list">
+          <li>Crotchet wigs &amp; braided wig caps</li>
+          <li>Ankara head and hair accessories</li>
+          <li>Ankara satin-lined luxury bonnets</li>
+          <li>Ankara scrunchies</li>
+          <li>Ankara head gears</li>
+        </ul>
+      </div>
+
+      <div class="expertise-category">
+        <span class="expertise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/></svg>
+        </span>
+        <h3>Wearables &amp; Hats</h3>
+        <ul class="expertise-list">
+          <li>Ankara detachable collars</li>
+          <li>Bucket and sun hats</li>
+        </ul>
+      </div>
+
+      <div class="expertise-category">
+        <span class="expertise-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h16v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg>
+        </span>
+        <h3>Home &amp; Bags</h3>
+        <ul class="expertise-list">
+          <li>Ankara-covered notebooks</li>
+          <li>Ankara throw pillow cases</li>
+          <li>Ankara pouches and shopping bags</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testimonial-band fade-up">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Client stories</span>
+        <h2>Loved by regulars</h2>
+      </div>
+    </div>
+
+    <div class="testimonial-grid">
+      <div class="testimonial">
+        <span class="stars">
+          {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+        </span>
+        <blockquote>My colorist finally understood exactly what &ldquo;natural but brighter&rdquo; meant. Booking again next month.</blockquote>
+        <cite><strong>Amara N.</strong>Color &amp; Highlights client</cite>
+      </div>
+
+      <div class="testimonial">
+        <span class="stars">
+          {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+        </span>
+        <blockquote>Booked the bridal package on a whim and it turned out to be the best decision of my wedding week.</blockquote>
+        <cite><strong>Faith W.</strong>Bridal client</cite>
+      </div>
+
+      <div class="testimonial">
+        <span class="stars">
+          {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+        </span>
+        <blockquote>The facial felt like an hour of quiet in the middle of a hectic week. My skin has never looked better.</blockquote>
+        <cite><strong>Brian K.</strong>Facials client</cite>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band fade-up" id="book">
+  <div class="container cta-band-inner">
+    <div class="cta-card">
+
+      <div class="cta-phone-panel">
+        <div class="cta-phone">
+          <div class="cta-phone-notch"></div>
+          <div class="cta-phone-screen">
+            <div class="cta-phone-logo">
+              <img src="{% static 'images/logo.png' %}" alt="Luxe Salon &amp; Studio logo">
+            </div>
+            <div class="cta-phone-cycle">
+              <span>Order via WhatsApp</span>
+              <span>DM us on Instagram</span>
+              <span>Call the studio directly</span>
+              <span>Shop the collection online</span>
+            </div>
+          </div>
+          <div class="cta-phone-bar"></div>
+        </div>
+      </div>
+
+      <div class="cta-copy-col">
+        <span class="eyebrow">Ready when you are</span>
+        <h2>Style that speaks for you.</h2>
+        <p>From bridal Ankara pieces to everyday accessories, reach us however works best for you &mdash; WhatsApp, Instagram, a call, or in person &mdash; and let's put your next look together.</p>
+        <div class="cta-band-actions">
+          <a href="{% url 'contact' %}" class="btn-pill">
+            Book Your Appointment
+            <span class="btn-pill-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </a>
+          <a href="#" class="btn-pill-outline">
+            Chat on WhatsApp
+            <span class="btn-pill-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L4 20l1.02-4.46A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 10.5c.3 2.6 2.4 4.7 5 5"/></svg>
+            </span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

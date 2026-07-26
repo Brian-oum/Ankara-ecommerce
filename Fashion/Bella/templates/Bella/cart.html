@@ -1,0 +1,61 @@
+{% extends "Bella/base.html" %}
+{% block title %}Your bag — Bella{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <span class="eyebrow">Your bag</span>
+    <h1>Bag</h1>
+
+    {% if cart %}
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td>KES {{ item.price }}</td>
+              <td>
+                <form method="post" action="{% url 'cart_update' item.product.id %}" style="display:flex; gap:8px;">
+                  {% csrf_token %}
+                  <input class="qty-input" type="number" name="quantity" value="{{ item.quantity }}" min="1">
+                  <button type="submit" class="btn btn-outline" style="padding:8px 14px;">Update</button>
+                </form>
+              </td>
+              <td>KES {{ item.subtotal }}</td>
+              <td>
+                <form method="post" action="{% url 'cart_remove' item.product.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-outline" style="padding:8px 14px;">Remove</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+          <tr class="cart-total-row">
+            <td colspan="3">Total</td>
+            <td colspan="2">KES {{ cart.get_total_price }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <a href="{% url 'checkout' %}" class="btn">Proceed to checkout</a>
+      <a href="{% url 'product_list' %}" class="btn btn-outline">Continue shopping</a>
+
+    {% else %}
+      <div class="empty-state">
+        <h2>Your bag is empty</h2>
+        <p>Add something from the collection to get started.</p>
+        <a href="{% url 'product_list' %}" class="btn" style="margin-top:16px;">Shop products</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

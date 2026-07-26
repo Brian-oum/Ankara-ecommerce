@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment
+.env
+venv/
+.venv/
+
+# VS Code
+.vscode/
+
+# SQLite
+db.sqlite3
+
+# Logs
+*.log
+
+# Media
+media/
+
+# OS files
+.DS_Store
+Thumbs.db
+keys/public.pem
+keys/private.pem
