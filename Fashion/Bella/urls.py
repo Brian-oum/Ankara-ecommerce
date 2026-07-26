@@ -21,7 +21,9 @@ urlpatterns = [
 
     path("checkout/", views.checkout, name="checkout"),
     path("success/", views.success, name="success"),
+    path("order/<str:order_reference>/confirm/", views.order_confirmation, name="order_confirmation"),
     path("contact/", views.contact, name="contact"),
+    path("reviews/", views.store_reviews, name="store_reviews"),
 
     path("callback/", views.payment_callback, name="payment_callback"),
     path("authenticate/", views.test_authentication, name="authenticate"),

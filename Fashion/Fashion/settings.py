@@ -150,7 +150,7 @@ JENGA_PUBLIC_KEY = BASE_DIR / os.getenv("JENGA_PUBLIC_KEY")
 
 JENGA_ACCOUNT_NUMBER = os.getenv("JENGA_ACCOUNT_NUMBER")
 JENGA_MERCHANT_NAME = os.getenv("JENGA_MERCHANT_NAME")
-
+WHATSAPP_BUSINESS_NUMBER = os.getenv("WHATSAPP_BUSINESS_NUMBER")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

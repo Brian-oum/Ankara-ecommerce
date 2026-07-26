@@ -2,6 +2,17 @@
 {% block title %}Checkout — Bella{% endblock %}
 
 {% block content %}
+<style>
+  /* Narrower form column, wider summary column, with breathing room
+     between the summary card and the edge of the page. */
+  .checkout-grid {
+    grid-template-columns: 0.85fr 1.3fr;
+    align-items: start;
+  }
+  .summary-box {
+    margin-right: 48px;
+  }
+</style>
 <section class="section">
   <div class="container checkout-grid">
     <div>

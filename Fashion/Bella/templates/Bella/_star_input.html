@@ -1,0 +1,31 @@
+<style>
+  .star-input-row {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .star-input-row input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .star-input-row label {
+    font-size: 28px;
+    line-height: 1;
+    color: var(--hairline, #ddd);
+    cursor: pointer;
+  }
+  .star-input-row input:checked ~ label,
+  .star-input-row label:hover,
+  .star-input-row label:hover ~ label {
+    color: #d9a441;
+  }
+</style>
+<div class="star-input-row">
+  {% for value in "54321" %}
+    <input type="radio" id="{{ prefix }}-star-{{ value }}" name="rating" value="{{ value }}" required>
+    <label for="{{ prefix }}-star-{{ value }}" title="{{ value }} star{{ value|pluralize }}">&#9733;</label>
+  {% endfor %}
+</div>
