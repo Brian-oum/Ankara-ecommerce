@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import Avg
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -154,6 +155,19 @@ class Order(models.Model):
     ]
 
     order_reference = models.CharField(max_length=30, unique=True)
+
+    # Optional - only set when the order was placed while signed in, so
+    # it shows up in that customer's order history. Checkout still works
+    # without an account (name/email/phone below cover that case either
+    # way), and SET_NULL keeps the order around even if the account is
+    # later deleted.
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+    )
 
     name = models.CharField(max_length=100)
     email = models.EmailField()

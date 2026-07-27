@@ -4,13 +4,18 @@
 {% block content %}
 <style>
   /* Narrower form column, wider summary column, with breathing room
-     between the summary card and the edge of the page. */
-  .checkout-grid {
-    grid-template-columns: 0.85fr 1.3fr;
-    align-items: start;
-  }
-  .summary-box {
-    margin-right: 48px;
+     between the summary card and the edge of the page. Only applies
+     once the base .checkout-grid media query would otherwise show two
+     columns — below that the page-wide mobile rules take over and
+     stack everything into one column with no extra margin. */
+  @media (min-width: 861px) {
+    .checkout-grid {
+      grid-template-columns: 0.85fr 1.3fr;
+      align-items: start;
+    }
+    .summary-box {
+      margin-right: 48px;
+    }
   }
 </style>
 <section class="section">
@@ -44,10 +49,18 @@
           <label for="{{ form.phone.id_for_label }}">M-Pesa phone number</label>
           {{ form.phone }}
           {% if form.phone.errors %}<div class="field-errors">{{ form.phone.errors|join:", " }}</div>{% endif %}
-          <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an STK push prompt on this number to complete payment.</p>
+          {% if jenga_live %}
+            <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an STK push prompt on this number to complete payment.</p>
+          {% else %}
+            <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">We'll use this number to confirm your order and guide you through M-Pesa payment on WhatsApp.</p>
+          {% endif %}
         </div>
 
-        <button type="submit" class="btn btn-block">Pay KES {{ cart.get_total_price }} with M-Pesa</button>
+        {% if jenga_live %}
+          <button type="submit" class="btn btn-block">Pay KES {{ cart.get_total_price }} with M-Pesa</button>
+        {% else %}
+          <button type="submit" class="btn btn-block">Place order — KES {{ cart.get_total_price }}</button>
+        {% endif %}
       </form>
     </div>
 

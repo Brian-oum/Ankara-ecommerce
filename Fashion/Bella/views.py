@@ -1,8 +1,12 @@
+import base64
 import json
 import logging
 
 import requests
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -12,7 +16,7 @@ from django.views.decorators.http import require_POST
 from .authentication import JengaAuthentication
 from .cart import Cart
 from .wishlist import Wishlist
-from .forms import CheckoutForm, ContactForm
+from .forms import CheckoutForm, ContactForm, RegisterForm, LoginForm
 from .models import (
     Product, ProductVariant, Category, Order, OrderItem, Payment, ContactMessage,
     ProductReview, StoreReview,
@@ -180,6 +184,74 @@ def store_reviews(request):
         "average_rating_percent": StoreReview.average_rating_percent(),
         "review_count": StoreReview.review_count(),
     })
+
+
+# ---- accounts -------------------------------------------------------------
+
+def register(request):
+    if request.user.is_authenticated:
+        return redirect("account_orders")
+
+    if request.method == "POST":
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # login() needs to know which backend authenticated this user -
+            # we created it directly rather than via authenticate(), so it
+            # has to be told explicitly. Update the path below if your app
+            # label isn't "Bella".
+            login(request, user, backend="Bella.backends.EmailBackend")
+            messages.success(request, f"Welcome, {user.first_name or 'there'}! Your account is ready.")
+            return redirect(request.POST.get("next") or "account_orders")
+    else:
+        form = RegisterForm()
+
+    return render(request, "Bella/register.html", {"form": form})
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("account_orders")
+
+    if request.method == "POST":
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(
+                request,
+                username=form.cleaned_data["email"],
+                password=form.cleaned_data["password"],
+            )
+            if user is not None:
+                login(request, user)
+                messages.success(request, "Signed in successfully.")
+                return redirect(request.POST.get("next") or "account_orders")
+            form.add_error(None, "That email and password don't match.")
+    else:
+        form = LoginForm()
+
+    return render(request, "Bella/login.html", {"form": form})
+
+
+@require_POST
+def logout_view(request):
+    logout(request)
+    messages.info(request, "You've been signed out.")
+    return redirect("home")
+
+
+@login_required(login_url="login")
+def account_orders(request):
+    """
+    Order history for the signed-in customer. Only orders placed while
+    logged in are linked to the account (see Order.user) - guest
+    checkouts made before signing up aren't retroactively attached.
+    """
+    orders = (
+        request.user.orders
+        .select_related("payment")
+        .prefetch_related("items__product")
+    )
+    return render(request, "Bella/account.html", {"orders": orders})
 
 
 # ---- cart ---------------------------------------------------------------
@@ -356,6 +428,7 @@ def checkout(request):
 
             order = Order.objects.create(
                 order_reference=order_reference,
+                user=request.user if request.user.is_authenticated else None,
                 name=name,
                 email=email,
                 phone=phone,
@@ -384,55 +457,84 @@ def checkout(request):
                 status="Pending",
             )
 
-            client = JengaClient()
+            if settings.JENGA_LIVE_ENABLED:
+                client = JengaClient()
 
-            try:
-                result = client.initiate_checkout(
-                    order_reference=order_reference,
-                    payment_reference=payment_reference,
-                    customer_name=name,
-                    customer_email=email,
-                    phone_number=phone,
-                    amount=total_amount,
-                    description=f"Fashion order {order_reference}",
-                )
-            except requests.HTTPError:
-                logger.exception(
-                    "Jenga checkout STK push failed for %s", payment_reference
-                )
-                payment.status = "Failed"
-                payment.save(update_fields=["status", "updated_at"])
-                order.status = "Failed"
-                order.save(update_fields=["status", "updated_at"])
-                form.add_error(
-                    None, "Could not reach the payment gateway. Please try again."
-                )
-                return render(request, "Bella/checkout.html", {"form": form, "cart": cart})
+                try:
+                    result = client.initiate_checkout(
+                        order_reference=order_reference,
+                        payment_reference=payment_reference,
+                        customer_name=name,
+                        customer_email=email,
+                        phone_number=phone,
+                        amount=total_amount,
+                        description=f"Fashion order {order_reference}",
+                    )
+                except requests.HTTPError:
+                    logger.exception(
+                        "Jenga checkout STK push failed for %s", payment_reference
+                    )
+                    payment.status = "Failed"
+                    payment.save(update_fields=["status", "updated_at"])
+                    order.status = "Failed"
+                    order.save(update_fields=["status", "updated_at"])
+                    form.add_error(
+                        None, "Could not reach the payment gateway. Please try again."
+                    )
+                    return render(
+                        request,
+                        "Bella/checkout.html",
+                        {"form": form, "cart": cart, "jenga_live": settings.JENGA_LIVE_ENABLED},
+                    )
 
-            if not result.get("status"):
-                # Jenga responded but rejected the request (e.g. bad params).
-                payment.status = "Failed"
-                payment.save(update_fields=["status", "updated_at"])
-                order.status = "Failed"
-                order.save(update_fields=["status", "updated_at"])
-                form.add_error(
-                    None, result.get("message", "Failed to initiate payment.")
-                )
-                return render(request, "Bella/checkout.html", {"form": form, "cart": cart})
+                if not result.get("status"):
+                    # Jenga responded but rejected the request (e.g. bad params).
+                    payment.status = "Failed"
+                    payment.save(update_fields=["status", "updated_at"])
+                    order.status = "Failed"
+                    order.save(update_fields=["status", "updated_at"])
+                    form.add_error(
+                        None, result.get("message", "Failed to initiate payment.")
+                    )
+                    return render(
+                        request,
+                        "Bella/checkout.html",
+                        {"form": form, "cart": cart, "jenga_live": settings.JENGA_LIVE_ENABLED},
+                    )
 
-            payment.invoice_number = result.get("data", {}).get("invoiceNumber", "")
-            payment.save(update_fields=["invoice_number", "updated_at"])
+                payment.invoice_number = result.get("data", {}).get("invoiceNumber", "")
+                payment.save(update_fields=["invoice_number", "updated_at"])
 
-            # Push was accepted - the customer now has an M-Pesa prompt on
-            # their phone. Final status arrives via payment_callback below.
+                # Push was accepted - the customer now has an M-Pesa prompt on
+                # their phone. Final status arrives via payment_callback below.
+
+            # else: JENGA_LIVE_ENABLED is off (e.g. live account not yet
+            # approved). We still record the order/payment as normal, we
+            # just don't touch JengaClient at all - no STK push is
+            # attempted, and payment stays "Pending" until it's confirmed
+            # over WhatsApp and updated by hand in admin. The moment the
+            # live account is approved, flip JENGA_LIVE_ENABLED back to
+            # True in settings and this whole branch starts firing again
+            # with zero other code changes.
+
             request.session["last_order_reference"] = order_reference
             cart.clear()
 
             return redirect("success")
     else:
-        form = CheckoutForm()
+        initial = {}
+        if request.user.is_authenticated:
+            initial = {
+                "name": request.user.get_full_name() or request.user.first_name,
+                "email": request.user.email,
+            }
+        form = CheckoutForm(initial=initial)
 
-    return render(request, "Bella/checkout.html", {"form": form, "cart": cart})
+    return render(
+        request,
+        "Bella/checkout.html",
+        {"form": form, "cart": cart, "jenga_live": settings.JENGA_LIVE_ENABLED},
+    )
 
 
 def success(request):
@@ -464,13 +566,50 @@ def order_confirmation(request, order_reference):
         Order.objects.prefetch_related("items__product"), order_reference=order_reference
     )
     whatsapp_link = order.get_whatsapp_link()
-    return render(request, "Bella/success.html", {"order": order, "whatsapp_link": whatsapp_link})
+    return render(request, "Bella/success.html", {
+        "order": order,
+        "whatsapp_link": whatsapp_link,
+        "jenga_live": settings.JENGA_LIVE_ENABLED,
+    })
 
 
 def test_authentication(request):
     auth = JengaAuthentication()
     token = auth.get_access_token()
     return JsonResponse(token)
+
+
+def _verify_callback_auth(request):
+    """
+    Jenga's IPN callback (Settings > IPNs on the portal) is sent with an
+    `Authorization: Basic ...` header, where the username/password are
+    whatever you configured when you registered the callback URL on
+    JengaHQ - these should match JENGA_CALLBACK_USERNAME /
+    JENGA_CALLBACK_PASSWORD in settings. This stops anyone who discovers
+    /callback/ from POSTing a fake "payment succeeded" and flipping an
+    order to Completed.
+
+    Sandbox note: while testing, some sandbox setups don't send this
+    header on the STK-push callbackUrl payload (Shape 1 below) - only
+    on the IPN payload (Shape 2). We only hard-require it for Shape 2;
+    Shape 1 is logged either way so you can see what your sandbox
+    account actually sends and tighten this once you've confirmed it.
+    """
+    auth_header = request.headers.get("Authorization", "")
+
+    if not auth_header.startswith("Basic "):
+        return False
+
+    try:
+        decoded = base64.b64decode(auth_header.split(" ", 1)[1]).decode("utf-8")
+        username, _, password = decoded.partition(":")
+    except (ValueError, UnicodeDecodeError):
+        return False
+
+    return (
+        username == settings.JENGA_CALLBACK_USERNAME
+        and password == settings.JENGA_CALLBACK_PASSWORD
+    )
 
 
 @csrf_exempt
@@ -488,7 +627,19 @@ def payment_callback(request):
             "message": str(e)
         }, status=400)
 
-    logger.info("Jenga callback received: %s", json.dumps(data))
+    authorized = _verify_callback_auth(request)
+    logger.info(
+        "Jenga callback received (authorized=%s): %s", authorized, json.dumps(data)
+    )
+
+    # Shape 2 (IPN) is the one Jenga docs confirm carries the Basic Auth
+    # header you configure yourself, so it's safe to reject outright.
+    # Shape 1 (the raw STK-push callbackUrl payload) isn't documented the
+    # same way, so during sandbox testing we log-but-allow it rather than
+    # silently dropping real test callbacks while you confirm the header.
+    if data.get("callbackType") == "IPN" and not authorized:
+        logger.warning("Rejected unauthorized IPN callback: %s", data)
+        return JsonResponse({"status": "error", "message": "Unauthorized"}, status=401)
 
     def sync_payment(lookup_field, lookup_value, status, telco_reference):
         payment = Payment.objects.filter(**{lookup_field: lookup_value}).first()

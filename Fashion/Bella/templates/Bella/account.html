@@ -1,0 +1,53 @@
+{% extends "Bella/base.html" %}
+{% block title %}My Orders{% endblock %}
+
+{% block content %}
+<section class="account-section">
+  <div class="container">
+    <div class="account-header">
+      <h1>My Orders</h1>
+      <p>Signed in as {{ request.user.email }} &middot;
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="link-btn" style="background:none;border:none;padding:0;color:var(--bramble);text-decoration:underline;cursor:pointer;font:inherit;">Sign out</button>
+        </form>
+      </p>
+    </div>
+
+    {% if orders %}
+      <div class="order-list">
+        {% for order in orders %}
+          <div class="order-card">
+            <div class="order-card-top">
+              <div>
+                <div class="order-card-ref">Order {{ order.order_reference }}</div>
+                <div class="order-card-date">Placed {{ order.created_at|date:"j M Y, g:i A" }}</div>
+              </div>
+              <span class="order-status order-status--{{ order.status|lower }}">{{ order.status }}</span>
+            </div>
+
+            <div class="order-card-items">
+              {% for item in order.items.all %}
+                <div class="order-card-item">
+                  <span>{{ item.quantity }} &times; {{ item.product.name }}</span>
+                  <span>KES {{ item.subtotal|floatformat:0 }}</span>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="order-card-bottom">
+              <a href="{% url 'order_confirmation' order.order_reference %}" class="btn btn-outline">View Details</a>
+              <div class="order-card-total">Total: KES {{ order.total_amount|floatformat:0 }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="account-empty">
+        <p>You haven't placed any orders yet.</p>
+        <p><a href="{% url 'product_list' %}" class="btn" style="margin-top:16px;">Start Shopping</a></p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -4,9 +4,15 @@
 {% block content %}
 <section class="section">
   <div class="container" style="max-width: 560px; text-align:center; padding: 60px 0;">
-    <span class="eyebrow">Order placed</span>
-    <h1>Check your phone</h1>
-    <p class="lede" style="margin: 0 auto 24px;">We've sent an M-Pesa payment request to your phone. Enter your PIN to complete the order.</p>
+    {% if jenga_live %}
+      <span class="eyebrow">Order placed</span>
+      <h1>Check your phone</h1>
+      <p class="lede" style="margin: 0 auto 24px;">We've sent an M-Pesa payment request to your phone. Enter your PIN to complete the order.</p>
+    {% else %}
+      <span class="eyebrow">Order received</span>
+      <h1>One last step — WhatsApp us</h1>
+      <p class="lede" style="margin: 0 auto 24px;">We've saved your order. Tap the button below to send it to us on WhatsApp — we'll confirm the details with you there and guide you through paying via M-Pesa.</p>
+    {% endif %}
 
     {% if order %}
       <div class="summary-box" style="text-align:left; margin-bottom: 24px;">
@@ -21,7 +27,12 @@
       </div>
     {% endif %}
 
-    <a href="{% url 'product_list' %}" class="btn">Continue shopping</a>
+    {% if not jenga_live and whatsapp_link %}
+      <a href="{{ whatsapp_link }}" target="_blank" rel="noopener" class="btn" style="margin-bottom:12px;">Confirm order on WhatsApp</a>
+      <br>
+    {% endif %}
+
+    <a href="{% url 'product_list' %}" class="btn{% if not jenga_live %} btn-outline{% endif %}">Continue shopping</a>
   </div>
 </section>
 {% endblock %}

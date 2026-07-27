@@ -8,46 +8,62 @@
     <h1>Bag</h1>
 
     {% if cart %}
-      <table class="cart-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Quantity</th>
-            <th>Subtotal</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in cart %}
+      <div class="cart-table-scroll">
+        <table class="cart-table">
+          <thead>
             <tr>
-              <td>{{ item.product.name }}</td>
-              <td>KES {{ item.price }}</td>
-              <td>
-                <form method="post" action="{% url 'cart_update' item.product.id %}" style="display:flex; gap:8px;">
-                  {% csrf_token %}
-                  <input class="qty-input" type="number" name="quantity" value="{{ item.quantity }}" min="1">
-                  <button type="submit" class="btn btn-outline" style="padding:8px 14px;">Update</button>
-                </form>
-              </td>
-              <td>KES {{ item.subtotal }}</td>
-              <td>
-                <form method="post" action="{% url 'cart_remove' item.product.id %}">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-outline" style="padding:8px 14px;">Remove</button>
-                </form>
-              </td>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
             </tr>
-          {% endfor %}
-          <tr class="cart-total-row">
-            <td colspan="3">Total</td>
-            <td colspan="2">KES {{ cart.get_total_price }}</td>
-          </tr>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {% for item in cart %}
+              <tr>
+                <td data-label="Product" class="cart-item-cell">
+                  <div class="cart-item">
+                    {% if item.product.image %}
+                      <img class="cart-item-thumb" src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                    {% else %}
+                      <span class="cart-item-thumb cart-item-thumb--empty"></span>
+                    {% endif %}
+                    <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-name">{{ item.product.name }}</a>
+                  </div>
+                </td>
+                <td data-label="Price">KES {{ item.price }}</td>
+                <td data-label="Quantity">
+                  <div class="cart-row-actions">
+                    <form method="post" action="{% url 'cart_update' item.product.id %}" class="cart-qty-form">
+                      {% csrf_token %}
+                      <input class="qty-input" type="number" name="quantity" value="{{ item.quantity }}" min="1" aria-label="Quantity for {{ item.product.name }}">
+                      <button type="submit" class="cart-icon-btn" aria-label="Update quantity" title="Update quantity">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      </button>
+                    </form>
+                    <form method="post" action="{% url 'cart_remove' item.product.id %}" class="cart-remove-form">
+                      {% csrf_token %}
+                      <button type="submit" class="cart-icon-btn cart-icon-btn--remove" aria-label="Remove {{ item.product.name }}" title="Remove item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+                <td data-label="Subtotal">KES {{ item.subtotal }}</td>
+              </tr>
+            {% endfor %}
+            <tr class="cart-total-row">
+              <td colspan="2">Total</td>
+              <td colspan="2">KES {{ cart.get_total_price }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <a href="{% url 'checkout' %}" class="btn">Proceed to checkout</a>
-      <a href="{% url 'product_list' %}" class="btn btn-outline">Continue shopping</a>
+      <div class="cart-bottom-actions">
+        <a href="{% url 'checkout' %}" class="btn">Proceed to checkout</a>
+        <a href="{% url 'product_list' %}" class="btn btn-outline">Continue shopping</a>
+      </div>
 
     {% else %}
       <div class="empty-state">

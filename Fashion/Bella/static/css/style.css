@@ -9,6 +9,8 @@
   --stone: #8A8371;
   --white: #FFFFFF;
   --gold: #B8935A;
+  --danger: #C0392B;
+  --danger-soft: #F5E4E0;
 }
 
 * { box-sizing: border-box; }
@@ -278,6 +280,12 @@ img { max-width: 100%; display: block; }
   .header-actions { gap: 6px; }
 }
 
+@media (max-width: 400px) {
+  .logo-mark { height: 38px; }
+  .account-link, .wishlist-trigger, .cart-trigger { width: 40px; height: 40px; }
+  .account-link i, .wishlist-trigger i, .cart-trigger i { font-size: 19px; }
+}
+
 /* ---- side drawers -------------------------------------------------------
    Shared slide-in panel styling used by both the cart drawer and the
    wishlist drawer. Each is populated via fetch() (cart_summary /
@@ -510,7 +518,8 @@ img { max-width: 100%; display: block; }
   position: relative;
   z-index: 2;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   padding: 56px 28px 130px clamp(28px, 6vw, 72px);
 }
 
@@ -618,6 +627,7 @@ img { max-width: 100%; display: block; }
   z-index: 3;
   display: flex;
   gap: 0;
+  max-width: 460px;
   background: var(--white);
   border-radius: 18px;
   box-shadow: 0 28px 54px -22px rgba(28, 27, 23, 0.22);
@@ -685,12 +695,13 @@ img { max-width: 100%; display: block; }
   pointer-events: none;
 }
 
-/* shared crossfade behaviour for the cycling hero image */
+/* shared crossfade behaviour for the cycling hero image
+   (5 slides x 4s each = 20s full loop) */
 .cycle-slide {
   position: absolute;
   inset: 0;
   opacity: 0;
-  animation: cycleFade 12s infinite;
+  animation: cycleFade 20s infinite;
 }
 
 .cycle-slide img {
@@ -724,13 +735,17 @@ img { max-width: 100%; display: block; }
 .cycle-slide:nth-child(1) { animation-delay: 0s; }
 .cycle-slide:nth-child(2) { animation-delay: 4s; }
 .cycle-slide:nth-child(3) { animation-delay: 8s; }
+.cycle-slide:nth-child(4) { animation-delay: 12s; }
+.cycle-slide:nth-child(5) { animation-delay: 16s; }
 
+/* percentages re-timed for a 20s loop so each slide still gets the
+   same ~4s on-screen window as before (fade in, hold, fade out, wait) */
 @keyframes cycleFade {
-  0%   { opacity: 0; transform: scale(1.04); }
-  3%   { opacity: 1; transform: scale(1.04); }
-  30%  { opacity: 1; transform: scale(1); }
-  36%  { opacity: 0; transform: scale(1); }
-  100% { opacity: 0; }
+  0%     { opacity: 0; transform: scale(1.04); }
+  1.8%   { opacity: 1; transform: scale(1.04); }
+  18%    { opacity: 1; transform: scale(1); }
+  21.6%  { opacity: 0; transform: scale(1); }
+  100%   { opacity: 0; }
 }
 
 @keyframes heroRise {
@@ -790,7 +805,8 @@ img { max-width: 100%; display: block; }
   flex-wrap: wrap;
   list-style: none;
   margin: 0;
-  width: 850px;
+  width: 100%;
+  max-width: 850px;
   padding: 10px 28px;
   gap: 20px;
   background: var(--bramble);
@@ -1183,7 +1199,16 @@ img { max-width: 100%; display: block; }
 .messages .info { background: #E9EEF2; }
 
 /* ---- cart / checkout table --------------------------------------------------------- */
-.cart-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+/* wrapper enables a contained horizontal scroll on narrow screens instead
+   of letting the table force the whole page to overflow sideways */
+.cart-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 32px;
+}
+
+.cart-table { width: 100%; min-width: 620px; border-collapse: collapse; margin-bottom: 0; }
 .cart-table th {
   text-align: left;
   font-size: 12px;
@@ -1192,9 +1217,10 @@ img { max-width: 100%; display: block; }
   color: var(--stone);
   border-bottom: 1px solid var(--hairline);
   padding-bottom: 12px;
+  white-space: nowrap;
 }
 .cart-table td {
-  padding: 18px 0;
+  padding: 18px 12px 18px 0;
   border-bottom: 1px solid var(--hairline);
   vertical-align: middle;
 }
@@ -1204,6 +1230,169 @@ img { max-width: 100%; display: block; }
   border: 1px solid var(--hairline);
 }
 .cart-total-row td { font-size: 18px; font-family: 'Fraunces', serif; padding-top: 20px; border: none; }
+
+/* ---- product thumbnail in the cart row ---------------------------------- */
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cart-item-thumb {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--ivory);
+  object-fit: cover;
+}
+
+.cart-item-thumb--empty {
+  display: block;
+  background: linear-gradient(160deg, #EFE9DA 0%, #DCD3BC 100%);
+}
+
+.cart-item-name {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: color .15s;
+}
+
+.cart-item-name:hover { color: var(--bramble); }
+
+/* ---- icon action buttons (update / remove) ------------------------------ */
+.cart-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cart-qty-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-remove-form { display: inline-flex; }
+
+.cart-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--white);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s, transform .15s;
+}
+
+.cart-icon-btn svg { width: 16px; height: 16px; }
+
+.cart-icon-btn:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ivory);
+  transform: translateY(-1px);
+}
+
+.cart-icon-btn--remove {
+  color: var(--danger);
+  border-color: rgba(192, 57, 43, 0.3);
+}
+
+.cart-icon-btn--remove:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: var(--white);
+}
+
+/* ---- bottom actions: wrap with breathing room, never touch edge-to-edge */
+.cart-bottom-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+@media (max-width: 560px) {
+  .cart-table th, .cart-table td { padding-right: 8px; font-size: 13px; }
+  .cart-table .qty-input { width: 48px; padding: 6px; }
+  .cart-icon-btn { width: 32px; height: 32px; }
+  .cart-icon-btn svg { width: 14px; height: 14px; }
+  .cart-bottom-actions .btn { flex: 1 1 auto; }
+}
+
+/* ---- phone layout: drop the table chrome and stack each row as a card,
+   instead of relying on horizontal scroll. Uses the data-label attributes
+   on each <td> in cart.html to relabel cells via ::before. --------------- */
+@media (max-width: 480px) {
+  .cart-table-scroll { overflow-x: visible; }
+  .cart-table { min-width: 0; }
+
+  .cart-table thead { display: none; }
+
+  .cart-table, .cart-table tbody, .cart-table tr, .cart-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .cart-table tr {
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    background: var(--white);
+  }
+
+  .cart-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: none;
+    font-size: 14px;
+  }
+
+  .cart-table td[data-label]::before {
+    content: attr(data-label);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--stone);
+    flex-shrink: 0;
+  }
+
+  .cart-row-actions { justify-content: flex-end; }
+
+  /* product cell carries an image + name, not a plain label/value pair -
+     give it its own full-width row at the top of the card instead */
+  .cart-table td.cart-item-cell {
+    justify-content: flex-start;
+    padding-bottom: 14px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cart-table td.cart-item-cell::before { display: none; }
+
+  .cart-total-row {
+    border: none;
+    margin-bottom: 0;
+    background: transparent;
+  }
+  .cart-total-row td {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    padding-top: 14px;
+  }
+  .cart-total-row td::before { display: none; }
+}
 
 .summary-box {
   border: 1px solid var(--hairline);
@@ -1234,9 +1423,21 @@ img { max-width: 100%; display: block; }
   content: "";
   position: absolute;
   inset: 0;
+  /* solid brand-color fallback, shows if the photo is missing or still loading */
   background: var(--cat-bg, linear-gradient(160deg, var(--bramble) 0%, var(--ink) 100%));
-  transition: transform .5s ease;
+  z-index: -3;
+}
+
+/* the category's own photo, sitting above the solid fallback and below
+   the darkening wash so the heading/count stay readable */
+.category-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   z-index: -2;
+  transition: transform .5s ease;
 }
 
 .category-card::after {
@@ -1247,6 +1448,7 @@ img { max-width: 100%; display: block; }
   z-index: -1;
 }
 
+.category-card:hover .category-card-img,
 .category-card:hover::before { transform: scale(1.06); }
 
 .category-card-body {
@@ -1772,6 +1974,20 @@ img { max-width: 100%; display: block; }
   .footer-grid { flex-direction: column; text-align: center; }
 }
 
+/* ---- reviews layout: two columns (list + form), stacks on tablet/mobile --
+   used by product_detail.html's "What customers say" section and by
+   reviews.html — replaces the old unresponsive inline grid styles. ------- */
+.reviews-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .reviews-layout { grid-template-columns: 1fr; gap: 40px; }
+}
+
 .empty-state {
   padding: 80px 0;
   text-align: center;
@@ -1813,7 +2029,7 @@ img { max-width: 100%; display: block; }
 .about-hero-copy h1 {
   font-size: 50px;
   line-height: 1.08;
-  width: 500px;
+  max-width: 500px;
   margin-bottom: 22px;
   animation: heroFadeIn .7s ease both;
   animation-delay: .38s;
@@ -1888,7 +2104,12 @@ img { max-width: 100%; display: block; }
   background: var(--stone);
   animation: heroSlideRight 1s ease both;
   animation-delay: .1s;
-  height: 750px;
+}
+
+.about-hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .about-hero-photo::after {
@@ -1953,9 +2174,12 @@ img { max-width: 100%; display: block; }
   .about-hero-inner { grid-template-columns: 1fr; min-height: 0; }
   .about-hero-copy { padding: 48px 20px 32px; max-width: none; }
   .about-hero-copy h1 { font-size: 38px; }
-  .about-hero-visual { min-height: 46vh; padding-bottom: 40px; }
-  .about-hero-photo { position: relative; border-radius: 24px; inset: auto; }
-  .about-hero-photo-circle { left: 20px; bottom: -40px; width: 42%; }
+  .about-hero-visual { min-height: 0; padding-bottom: 0; }
+  .about-hero-photo { position: relative; border-radius: 24px; inset: auto; height: 46vh; }
+  /* single clean photo on smaller screens — the overlapping circular
+     accent photo is dropped rather than risking the same overlap glitch
+     seen in the mission/vision photos above. */
+  .about-hero-photo-circle { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1968,6 +2192,8 @@ img { max-width: 100%; display: block; }
 }
 
 /* ---- story section: overlapping photo pair + copy panel --------------- */
+.about-story { padding: 48px 0; }
+
 .about-story-row {
   display: grid;
   grid-template-columns: 0.95fr 1fr;
@@ -1987,6 +2213,20 @@ img { max-width: 100%; display: block; }
   overflow: hidden;
   box-shadow: 0 30px 60px -30px rgba(28, 27, 23, 0.32);
   height: 500px;
+}
+
+.about-story-photo img,
+.about-story-photo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.about-story-photo img,
+.about-story-photo-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .about-story-photo .placeholder-slide,
@@ -2039,9 +2279,14 @@ img { max-width: 100%; display: block; }
 
 @media (max-width: 900px) {
   .about-story-row { grid-template-columns: 1fr; gap: 40px; }
-  .about-story-media { padding-right: 0; padding-bottom: 64px; order: 1; }
+  .about-story-media { margin-left: 0; padding-right: 0; padding-bottom: 64px; order: 1; }
   .about-story-copy { order: 2; }
-  .about-story-photo-circle { width: 54%; }
+  .about-story-photo { height: auto; }
+  .about-story-photo-circle { width: 54%; right: -10px; bottom: -50px; margin-right: 0; margin-bottom: 0; }
+}
+
+@media (max-width: 480px) {
+  .about-story-photo-circle { width: 46%; right: -6px; bottom: -32px; }
 }
 
 /* ---- partners & brands: fade in left-to-right, one after another ------ */
@@ -2128,7 +2373,7 @@ img { max-width: 100%; display: block; }
 
 /* ---- mission & vision: photo pair on the left, copy on the right, same
    composition as the story section above it -------------------------------- */
-.about-mission { padding-top: 24px; }
+.about-mission { padding-top: 24px; padding-bottom: 40px; }
 
 .about-mission-row {
   display: grid;
@@ -2147,7 +2392,7 @@ img { max-width: 100%; display: block; }
    composition; the whole pair sits in the left column via the grid. */
 .mv-duo {
   position: relative;
-  height: 480px;
+  height: 680px;
 }
 
 .mv-duo-photo {
@@ -2156,6 +2401,12 @@ img { max-width: 100%; display: block; }
   border: 6px solid var(--ivory);
   box-shadow: 0 22px 44px -18px rgba(28, 27, 23, 0.4);
   border-radius: 14px;
+}
+
+.mv-duo-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .mv-duo-photo .placeholder-slide {
@@ -2174,23 +2425,23 @@ img { max-width: 100%; display: block; }
   color: var(--ink-soft);
 }
 
-/* a — straight portrait, top-right, bleeds off the top and right edges */
+/* a — straight portrait, pinned to the left edge with a small margin */
 .mv-duo-a {
   top: 0;
-  left: 38%;
-  width: 62%;
-  height: 46%;
+  left: 10px;
+  width: 58%;
+  height: 650px;
   z-index: 1;
 }
 
-/* b — larger photo, bottom-left, rotated, bleeds off the left and
-   bottom edges, layered in front of a */
+/* b — larger photo, right side, rotated, layered in front of a */
 .mv-duo-b {
-  top: 38%;
-  left: 0;
-  width: 95%;
-  height: 62%;
-  transform: rotate(-6deg);
+  top: 50%;
+  right: 0;
+  left: auto;
+  width: 62%;
+  height: 55%;
+  transform: rotate(130deg);
   z-index: 2;
 }
 
@@ -2198,13 +2449,25 @@ img { max-width: 100%; display: block; }
   .about-mission-row { grid-template-columns: 1fr; gap: 40px; }
   .about-mission-media { order: 1; }
   .about-mission-copy { order: 2; }
-  .mv-duo { height: 420px; }
+
+  /* show a single, clean photo on smaller screens instead of the two
+     overlapping/rotated desktop photos — mv-duo-a's fixed 650px height
+     was also overflowing its shorter mobile container and spilling into
+     the text below it, which this also fixes. */
+  .mv-duo { height: auto; }
+  .mv-duo-b { display: none; }
+  .mv-duo-a {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    height: 340px;
+    z-index: 1;
+  }
 }
 
 @media (max-width: 520px) {
-  .mv-duo { height: 360px; }
-  .mv-duo-a { width: 68%; left: 30%; }
-  .mv-duo-b { width: 92%; }
+  .mv-duo-a { height: 260px; }
 }
 
 .mv-block + .mv-block {
@@ -2246,7 +2509,7 @@ img { max-width: 100%; display: block; }
 }
 
 /* ---- impact: four animated counters in one floating card ---------------- */
-.impact-section { padding: 96px 0; }
+.impact-section { padding: 64px 0; }
 
 .impact-stats {
   display: grid;
@@ -2297,12 +2560,12 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 480px) {
-  .impact-stats { grid-template-columns: 1fr; }
-  .impact-stat { border-right: none; }
+  .impact-stat { padding: 28px 16px; }
+  .impact-stat .num { font-size: 32px; }
 }
 
 /* ---- core values: 7-item icon grid --------------------------------------- */
-.values-section { padding: 96px 0 108px; }
+.values-section { padding: 64px 0 72px; }
 
 .values-grid {
   display: grid;
@@ -2607,3 +2870,367 @@ img { max-width: 100%; display: block; }
 @media (max-width: 560px) {
   .contact-form-grid { grid-template-columns: 1fr; }
 }
+/* ---- preloader --------------------------------------------------------
+   Logo fills bottom-to-top using the illustration as a mask over a solid
+   fill layer, with a business-tagline typewriter beneath it. Removed
+   from the DOM once the window "load" event fires (see main.js). ------- */
+body.preloader-lock { overflow: hidden; }
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ivory);
+  transition: opacity .6s ease, visibility .6s ease;
+}
+
+.preloader.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preloader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.preloader-logo {
+  position: relative;
+  width: 132px;
+  height: 148px;
+}
+
+.preloader-logo-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: .14;
+}
+
+.preloader-logo-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bramble);
+  -webkit-mask-image: var(--logo-mask);
+  mask-image: var(--logo-mask);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  clip-path: inset(100% 0 0 0);
+  animation: preloader-fill 2.1s cubic-bezier(.65, 0, .35, 1) forwards;
+}
+
+@keyframes preloader-fill {
+  0%   { clip-path: inset(100% 0 0 0); }
+  100% { clip-path: inset(0% 0 0 0); }
+}
+
+.preloader-tagline {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.preloader-cursor {
+  color: var(--bramble);
+  animation: preloader-blink 1s step-end infinite;
+}
+
+@keyframes preloader-blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .preloader-logo-fill { animation: none; clip-path: inset(0 0 0 0); }
+  .preloader-cursor { animation: none; }
+  .preloader { transition: none; }
+}
+/* =========================================================================
+   MOBILE HAMBURGER NAV — trigger button + slide-in drawer (reuses the
+   .side-drawer component already used for the cart/wishlist drawers).
+   The button itself is hidden until the phone breakpoint below turns it on.
+   ========================================================================= */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background .15s;
+}
+
+.nav-hamburger:hover { background: var(--hairline); }
+
+.nav-hamburger span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+
+.mobile-nav-links {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-nav-links a {
+  padding: 16px 4px;
+  border-bottom: 1px solid var(--hairline);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.mobile-nav-links a:hover,
+.mobile-nav-links a.active { color: var(--bramble); }
+
+.mobile-nav-actions {
+  display: flex;
+  flex-direction: column;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+}
+
+.mobile-nav-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 4px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.mobile-nav-action:hover { color: var(--bramble); }
+.mobile-nav-action i { width: 18px; text-align: center; color: var(--bramble); }
+
+/* =========================================================================
+   PHONE-SPECIFIC MOBILE REFINEMENTS (max-width: 767px)
+   Placed last so these rules win the cascade over the earlier tablet-level
+   (860 / 900 / 991px) breakpoints wherever both apply.
+   ========================================================================= */
+@media (max-width: 767px) {
+
+  /* ---- header: logo left, hamburger right, inline nav links tucked
+     into the slide-in drawer instead --------------------------------- */
+  .main-nav { display: none; }
+  .account-link,
+  .wishlist-trigger,
+  .cart-trigger { display: none; }
+  .nav-hamburger { display: inline-flex; }
+
+  .site-header-inner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas: "logo actions";
+    row-gap: 0;
+    height: 68px;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .header-actions { gap: 4px; }
+
+  /* ---- homepage hero: image + copy content together, hero-stats
+     directly below as its own row, feature strip in a 2x2 grid ------- */
+  .hero-copy-col { display: contents; }
+
+  .hero-visual-col {
+    order: 1;
+    width: 100%;
+    min-height: 44vh;
+  }
+
+  .hero-copy {
+    order: 2;
+    width: 100%;
+    max-width: none;
+    padding: 28px 20px 0;
+  }
+
+  .hero-stats {
+    order: 3;
+    width: 100%;
+    max-width: 460px;
+    margin: 24px auto 0;
+    padding: 0 20px;
+  }
+
+  .hero-feature-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    max-width: none;
+    padding: 16px 20px;
+    gap: 14px 16px;
+  }
+  .hero-feature-list li { flex: none; }
+
+  /* ---- about page hero: photo appears with/above the copy ---------- */
+  .about-hero-visual { order: -1; }
+
+  /* ---- contact page: form immediately after the hero --------------- */
+  .contact-form-panel { order: -1; }
+}
+
+/* =========================================================================
+   FLOATING WHATSAPP BUTTON — fixed to the bottom-left of the viewport on
+   every page. Sits above ordinary page content but below the cart/wishlist/
+   nav drawers and their overlays (z-index 40/41) so it doesn't float over
+   an open drawer.
+   ========================================================================= */
+.whatsapp-float {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 30;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #25D366;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 28px -10px rgba(28, 27, 23, 0.45);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.whatsapp-float:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 16px 32px -10px rgba(28, 27, 23, 0.5);
+}
+
+.whatsapp-float i { font-size: 28px; line-height: 1; }
+
+@media (max-width: 480px) {
+  .whatsapp-float { left: 16px; bottom: 16px; width: 50px; height: 50px; }
+  .whatsapp-float i { font-size: 24px; }
+}
+/* ---- accounts: login / register / order history -----------------------
+   Reuses the same .field / .form-errors / .btn primitives as the contact
+   and checkout forms, just in a single centered card instead of the
+   two-column contact layout. */
+.auth-section { padding: 92px 0 100px; }
+
+.auth-panel {
+  max-width: 440px;
+  margin: 0 auto;
+  background: var(--white);
+  border: 1px solid var(--hairline);
+  padding: 44px clamp(24px, 5vw, 48px);
+}
+
+.auth-panel h1 { font-size: clamp(26px, 3vw, 32px); margin-bottom: 8px; }
+.auth-panel > p.lede { color: var(--ink-soft); margin-bottom: 30px; }
+
+.auth-switch {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.auth-switch a { color: var(--bramble); text-decoration: underline; }
+
+/* ---- order history ------------------------------------------------- */
+.account-section { padding: 92px 0 100px; }
+
+.account-header { margin-bottom: 36px; }
+.account-header h1 { font-size: clamp(28px, 3vw, 36px); margin-bottom: 6px; }
+.account-header p { color: var(--ink-soft); }
+
+.order-list { display: flex; flex-direction: column; gap: 20px; }
+
+.order-card {
+  background: var(--white);
+  border: 1px solid var(--hairline);
+  padding: 24px clamp(20px, 3vw, 32px);
+}
+
+.order-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.order-card-ref { font-family: 'Fraunces', Georgia, serif; font-size: 18px; }
+.order-card-date { font-size: 13px; color: var(--stone); margin-top: 2px; }
+
+.order-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+}
+
+.order-status--pending { background: #F7EFD9; color: #8A6A1B; }
+.order-status--completed { background: #EEF2E5; color: #3E6B2E; }
+.order-status--failed { background: var(--danger-soft); color: var(--danger); }
+
+.order-card-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.order-card-item { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; color: var(--ink-soft); }
+.order-card-item span:first-child { color: var(--ink); }
+
+.order-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-card-total { font-family: 'Fraunces', Georgia, serif; font-size: 18px; }
+
+.account-empty {
+  background: var(--white);
+  border: 1px solid var(--hairline);
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.mobile-nav-action-form { width: 100%; margin: 0; }

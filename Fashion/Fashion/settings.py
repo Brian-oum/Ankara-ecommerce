@@ -129,6 +129,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+JENGA_LIVE_ENABLED = False   # flip to True once the live account is approved
 
 JENGA_BASE_URL = os.getenv("JENGA_BASE_URL")
 
