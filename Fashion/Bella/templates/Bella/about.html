@@ -15,8 +15,9 @@
   <div class="about-hero-inner">
     <div class="about-hero-copy">
       <span class="badge-circle">Our<br>Story</span>
-      <h1>Small runs.<br>Real fabric.<br><span class="accent">No noise.</span></h1>
-      <p class="lede">Bella started as a single rack in Nairobi and grew into a studio built around one idea: clothes should last longer than a season.</p>
+      <h1>Limited collections.<br>Exceptional fabrics.<br><span class="accent">Timeless design.</span></h1>
+      <p class="lede">Etsirbella has grown from a single collection into 
+        a distinguished fashion brand committed to creating refined garments that transcend seasonal trends.</p>
       <div class="hero-cta-row">
         <a href="{% url 'contact' %}" class="btn-pill">
           <span>Get in touch</span>
@@ -28,12 +29,10 @@
     </div>
     <div class="about-hero-visual">
       <div class="about-hero-photo">
-        <!-- Replace with: <img src="{% static 'images/about-hero.jpg' %}" alt="Inside the Bella studio"> -->
-        <div class="placeholder-slide"><span>Studio photo</span></div>
+        <img src="{% static 'images/about2.jpg' %}" alt="Inside the Bella studio"> 
       </div>
       <div class="about-hero-photo-circle">
-        <!-- Replace with: <img src="{% static 'images/about-hero-portrait.jpg' %}" alt="A Bella team member"> -->
-        <div class="placeholder-slide"><span>Portrait</span></div>
+        <img src="{% static 'images/about1.jpg' %}" alt="A Bella team member">
       </div>
     </div>
   </div>
@@ -51,12 +50,10 @@
     <div class="about-mission-media">
       <div class="mv-duo">
         <div class="mv-duo-photo mv-duo-a">
-          <!-- Replace with: <img src="{% static 'images/about-mission-a.jpg' %}" alt="A Bella team member"> -->
-          <div class="placeholder-slide"><span>Studio portrait</span></div>
+          <img src="{% static 'images/about3.jpg' %}" alt="A Bella team member">
         </div>
         <div class="mv-duo-photo mv-duo-b">
-          <!-- Replace with: <img src="{% static 'images/about-mission-b.jpg' %}" alt="Finished pieces on display"> -->
-          <div class="placeholder-slide"><span>Finished pieces</span></div>
+          <img src="{% static 'images/about4.jpg' %}" alt="Finished pieces on display">
         </div>
       </div>
     </div>
@@ -70,7 +67,7 @@
           </span>
           <h3>Our mission</h3>
         </div>
-        <p>To make thoughtfully cut, small-batch clothing that treats the wearer and the maker with equal respect — natural fabric, fair pay for our tailors, and pieces built to outlast a single season.</p>
+        <p>To create quality fashion that celebrates African beauty, empowers communities and funds education through our Buy. Educate. Transform. model.</p>
       </div>
 
       <div class="mv-block">
@@ -80,7 +77,7 @@
           </span>
           <h3>Our vision</h3>
         </div>
-        <p>To grow into East Africa's most trusted small-batch studio — known not for how much we make, but for how well it's made and how long it lasts.</p>
+        <p>To be Africa's leading purpose-driven fashion brand, inspiring confidence and transforming lives through every purchase.</p>
       </div>
     </div>
   </div>
@@ -103,27 +100,61 @@
     <div class="impact-stats">
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
-        <span class="num" data-count="3200">0+</span>
-        <span class="label">Garments made</span>
+        <span class="num" data-count="3200">430+</span>
+        <span class="label">Learners Supported</span>
       </div>
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        <span class="num" data-count="1500">0+</span>
-        <span class="label">Happy clients</span>
+        <span class="num" data-count="1500">20+</span>
+        <span class="label">Scholarship Programme</span>
       </div>
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="num" data-count="24">0+</span>
-        <span class="label">Tailors partnered</span>
+        <span class="num" data-count="24">100+</span>
+        <span class="label">Women Empowered</span>
       </div>
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        <span class="num" data-count="6">0+</span>
-        <span class="label">Years of craft</span>
+        <span class="num" data-count="6">430+</span>
+        <span class="label">School Feeding Programme</span>
       </div>
     </div>
   </div>
 </section>
+
+
+<!-- ============================================================
+     STORY / STUDIO SECTION
+     Overlapping photo pair on the left, copy on the right — mirrors
+     the brand's existing "What we make" / "How you pay" content.
+============================================================ -->
+<section class="section about-story fade-up">
+  <div class="container about-story-row">
+    <div class="about-story-media">
+      <div class="about-story-photo">
+        <img src="{% static 'images/about5.jpg' %}" alt="Tailors at work in the Bella studio"> 
+      </div>
+      <div class="about-story-photo-circle">
+        <img src="{% static 'images/about6.jpg' %}" alt="A fitting at Bella">
+      </div>
+    </div>
+    <div class="about-story-copy">
+      <span class="eyebrow">Behind the label</span>
+      <h2>Designed, cut and stitched in Nairobi.</h2>
+      <p>Welcome to Etsirbella Designs where unique handmade fashion accessories meet powerful stories of transformation.</p>
+      <p>We create handcrafted Afro wigs and vibrant Ankara accessories that inspire confidence, celebrate African beauty and create lasting impact.</p>
+      <p>Through our Buy. Educate. Transform. model, every purchase helps provide quality education for underprivileged children in Kibera.</p>
+      <p>Questions about sizing, an order, or a wholesale enquiry? We'll get back to you.</p>
+      <a href="{% url 'contact' %}" class="btn-pill-outline">
+        <span class="btn-pill-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l9 6 9-6M4 5h16v14H4z"/></svg>
+        </span>
+        <span>Talk to us</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 
 <!-- ============================================================
      CORE VALUES
@@ -142,126 +173,50 @@
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         </span>
-        <h3>Craftsmanship</h3>
-        <p>Every seam is done by hand, by tailors who take pride in getting the small details right.</p>
+        <h3>Purpose</h3>
+        <p> Every product creates a positive impact beyond fashion.</p>
       </div>
       <div class="value-card">
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
         </span>
-        <h3>Sustainability</h3>
-        <p>Natural fibres and small production runs — nothing made just to sit in a landfill.</p>
+        <h3>Quality </h3>
+        <p>We are committed to exceptional craftsmanship and durable products.</p>
       </div>
       <div class="value-card">
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
         </span>
-        <h3>Transparency</h3>
-        <p>From fabric sourcing to pricing, we're upfront about where your garment comes from.</p>
+        <h3>Creativity </h3>
+        <p>We embrace innovation and celebrate African-inspired designs.</p>
       </div>
       <div class="value-card">
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </span>
-        <h3>Community</h3>
-        <p>We work directly with local tailors and small studios who share our standards.</p>
+        <h3>Integrity </h3>
+        <p>We conduct our business with honesty, transparency and accountability.</p>
       </div>
       <div class="value-card">
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </span>
-        <h3>Authenticity</h3>
-        <p>Our designs reflect real Nairobi style, not a trend borrowed from somewhere else.</p>
+        <h3>Empowerment</h3>
+        <p>We create opportunities that uplift women, children and communities.</p>
       </div>
       <div class="value-card">
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/></svg>
         </span>
-        <h3>Comfort</h3>
-        <p>Clothes should feel as good as they look, so fit and fabric always come before flash.</p>
+        <h3>Excellence</h3>
+        <p>We strive for excellence in every customer experience and every product we make.</p>
       </div>
       <div class="value-card">
         <span class="icon-circle-lg">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </span>
-        <h3>Timeless design</h3>
-        <p>We design pieces meant to be worn for years, not just for one season.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     STORY / STUDIO SECTION
-     Overlapping photo pair on the left, copy on the right — mirrors
-     the brand's existing "What we make" / "How you pay" content.
-============================================================ -->
-<section class="section about-story fade-up">
-  <div class="container about-story-row">
-    <div class="about-story-media">
-      <div class="about-story-photo">
-        <!-- Replace with: <img src="{% static 'images/about-tailors.jpg' %}" alt="Tailors at work in the Bella studio"> -->
-        <div class="placeholder-slide"><span>Tailors at work</span></div>
-      </div>
-      <div class="about-story-photo-circle">
-        <!-- Replace with: <img src="{% static 'images/about-fitting.jpg' %}" alt="A fitting at Bella"> -->
-        <div class="placeholder-slide"><span>Fitting</span></div>
-      </div>
-    </div>
-    <div class="about-story-copy">
-      <span class="eyebrow">Behind the label</span>
-      <h2>Designed, cut and stitched in Nairobi.</h2>
-      <p>Every piece is designed in-house and produced in limited runs, so what you buy stays part of a small edit rather than a mass line. We work directly with local tailors and prioritise natural fibres.</p>
-      <p>Checkout is powered by M-Pesa through Jenga, so paying for an order is a prompt on your phone — no cards, no delays.</p>
-      <p>Questions about sizing, an order, or a wholesale enquiry? We'll get back to you.</p>
-      <a href="{% url 'contact' %}" class="btn-pill-outline">
-        <span class="btn-pill-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l9 6 9-6M4 5h16v14H4z"/></svg>
-        </span>
-        <span>Talk to us</span>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================
-     PARTNERS & BRANDS
-     Logos fade in left-to-right, one after another, the first time
-     the row scrolls into view (see .partners-row in style.css and
-     the observer in main.js).
-============================================================ -->
-<section class="section partners-section fade-up">
-  <div class="container" style="max-width: 1160px;">
-    <div class="section-head">
-      <div>
-        <span class="eyebrow">Who we work with</span>
-        <h2>Partners &amp; brands</h2>
-      </div>
-    </div>
-    <div class="partners-row">
-      <div class="partner-logo" style="--i:0">
-        <!-- Replace with: <img src="{% static 'images/partners/jenga-pay.png' %}" alt="Jenga Pay"> -->
-        <div class="placeholder-slide"><span>Jenga Pay</span></div>
-      </div>
-      <div class="partner-logo" style="--i:1">
-        <!-- Replace with: <img src="{% static 'images/partners/kitenge-collective.png' %}" alt="Kitenge Collective"> -->
-        <div class="placeholder-slide"><span>Kitenge Collective</span></div>
-      </div>
-      <div class="partner-logo" style="--i:2">
-        <!-- Replace with: <img src="{% static 'images/partners/sokoni-textiles.png' %}" alt="Sokoni Textiles"> -->
-        <div class="placeholder-slide"><span>Sokoni Textiles</span></div>
-      </div>
-      <div class="partner-logo" style="--i:3">
-        <!-- Replace with: <img src="{% static 'images/partners/nairobi-design-week.png' %}" alt="Nairobi Design Week"> -->
-        <div class="placeholder-slide"><span>Nairobi Design Week</span></div>
-      </div>
-      <div class="partner-logo" style="--i:4">
-        <!-- Replace with: <img src="{% static 'images/partners/the-loft-studio.png' %}" alt="The Loft Studio"> -->
-        <div class="placeholder-slide"><span>The Loft Studio</span></div>
-      </div>
-      <div class="partner-logo" style="--i:5">
-        <!-- Replace with: <img src="{% static 'images/partners/anga-markets.png' %}" alt="Anga Markets"> -->
-        <div class="placeholder-slide"><span>Anga Markets</span></div>
+        <h3>Sustainability</h3>
+        <p>We promote responsible practices that benefit people and the planet.</p>
       </div>
     </div>
   </div>

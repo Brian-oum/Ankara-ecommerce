@@ -1,0 +1,42 @@
+{% extends "Bella/base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="container">
+    <div class="auth-panel">
+      <h1>Sign In</h1>
+      <p class="lede">Welcome back. Sign in to see your order history.</p>
+
+      {% if form.non_field_errors %}
+        <div class="form-errors">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'login' %}" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+        <div class="field">
+          <label for="id_email">Email address</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="field-errors">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="field">
+          <label for="id_password">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}<div class="field-errors">{{ form.password.errors.0 }}</div>{% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-block">Sign In</button>
+      </form>
+
+      <div class="auth-switch">
+        Don't have an account? <a href="{% url 'register' %}">Create one</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

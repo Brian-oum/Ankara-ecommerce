@@ -9,6 +9,90 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ---- preloader: logo fill-up + typing tagline --------------------
+     The fill animation itself runs in CSS (see .preloader-logo-fill).
+     This just types a rotating business tagline underneath it, and
+     removes the overlay once the page has actually finished loading
+     (never before the fill animation has had a chance to finish). --- */
+  (function () {
+    var preloader = document.getElementById("preloader");
+    if (!preloader) return;
+
+    var typeEl = document.getElementById("preloaderTypeText");
+    var phrases = [
+      "Where beauty meets artistry",
+      "Handcrafted Ankara, made for you",
+      "Your best look, every day"
+    ];
+    var typeTimer = null;
+
+    function typeLoop() {
+      var phraseIndex = 0;
+      var charIndex = 0;
+      var deleting = false;
+
+      function tick() {
+        var current = phrases[phraseIndex];
+
+        if (!deleting) {
+          charIndex++;
+          typeEl.textContent = current.slice(0, charIndex);
+          if (charIndex === current.length) {
+            deleting = true;
+            typeTimer = window.setTimeout(tick, 1400);
+            return;
+          }
+          typeTimer = window.setTimeout(tick, 45);
+        } else {
+          charIndex--;
+          typeEl.textContent = current.slice(0, charIndex);
+          if (charIndex === 0) {
+            deleting = false;
+            phraseIndex = (phraseIndex + 1) % phrases.length;
+            typeTimer = window.setTimeout(tick, 300);
+            return;
+          }
+          typeTimer = window.setTimeout(tick, 22);
+        }
+      }
+
+      tick();
+    }
+
+    if (typeEl) {
+      if (reduceMotion) {
+        typeEl.textContent = phrases[0];
+      } else {
+        typeLoop();
+      }
+    }
+
+    // Keep the overlay up for at least as long as the fill animation
+    // (2.1s in CSS) so it never flashes off before the logo has formed.
+    var MIN_VISIBLE = reduceMotion ? 300 : 2200;
+    var shownAt = Date.now();
+
+    function hidePreloader() {
+      var wait = Math.max(MIN_VISIBLE - (Date.now() - shownAt), 0);
+      window.setTimeout(function () {
+        preloader.classList.add("is-hidden");
+        document.body.classList.remove("preloader-lock");
+        if (typeTimer) window.clearTimeout(typeTimer);
+
+        preloader.addEventListener("transitionend", function handler() {
+          preloader.remove();
+          preloader.removeEventListener("transitionend", handler);
+        });
+      }, wait);
+    }
+
+    if (document.readyState === "complete") {
+      hidePreloader();
+    } else {
+      window.addEventListener("load", hidePreloader);
+    }
+  })();
+
   /* ---- stat counters ---------------------------------------------- */
   function animateCount(el) {
     var target = parseInt(el.getAttribute("data-count"), 10) || 0;
