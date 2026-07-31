@@ -7,6 +7,7 @@ urlpatterns = [
     path("about/", views.about, name="about"),
 
     path("products/", views.product_list, name="product_list"),
+    path("products/search-suggest/", views.product_search_suggest, name="product_search_suggest"),
     path("products/<slug:slug>/", views.product_detail, name="product_detail"),
 
     path("cart/", views.cart_detail, name="cart_detail"),
@@ -32,4 +33,6 @@ urlpatterns = [
 
     path("callback/", views.payment_callback, name="payment_callback"),
     path("authenticate/", views.test_authentication, name="authenticate"),
+    path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
+    path("terms-of-service/", views.terms_of_service, name="terms_of_service"),
 ]

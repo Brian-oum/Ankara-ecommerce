@@ -1,5 +1,7 @@
 {% extends "Bella/base.html" %}
-{% block title %}Your bag — Bella{% endblock %}
+{% block title %}Your Bag — Etsirbella Designs{% endblock %}
+{% block meta_description %}Review the items in your Etsirbella Designs shopping bag before checkout.{% endblock %}
+{% block robots %}noindex, follow{% endblock %}
 
 {% block content %}
 <section class="section">
@@ -28,7 +30,10 @@
                     {% else %}
                       <span class="cart-item-thumb cart-item-thumb--empty"></span>
                     {% endif %}
-                    <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-name">{{ item.product.name }}</a>
+                    <div>
+                      <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-name">{{ item.product.name }}</a>
+                      {% if item.variant %}<div class="cart-item-variant" style="color: var(--stone); font-size: 13px;">{{ item.variant.name }}</div>{% endif %}
+                    </div>
                   </div>
                 </td>
                 <td data-label="Price">KES {{ item.price }}</td>
@@ -36,6 +41,7 @@
                   <div class="cart-row-actions">
                     <form method="post" action="{% url 'cart_update' item.product.id %}" class="cart-qty-form">
                       {% csrf_token %}
+                      {% if item.variant %}<input type="hidden" name="variant_id" value="{{ item.variant.id }}">{% endif %}
                       <input class="qty-input" type="number" name="quantity" value="{{ item.quantity }}" min="1" aria-label="Quantity for {{ item.product.name }}">
                       <button type="submit" class="cart-icon-btn" aria-label="Update quantity" title="Update quantity">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -43,6 +49,7 @@
                     </form>
                     <form method="post" action="{% url 'cart_remove' item.product.id %}" class="cart-remove-form">
                       {% csrf_token %}
+                      {% if item.variant %}<input type="hidden" name="variant_id" value="{{ item.variant.id }}">{% endif %}
                       <button type="submit" class="cart-icon-btn cart-icon-btn--remove" aria-label="Remove {{ item.product.name }}" title="Remove item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                       </button>

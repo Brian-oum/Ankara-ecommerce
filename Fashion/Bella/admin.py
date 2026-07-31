@@ -16,30 +16,20 @@ class CategoryAdmin(admin.ModelAdmin):
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ("name", "price", "stock", "sort_order", "is_default")
+    fields = ("name", "price", "sort_order", "is_default")
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "category", "display_price", "display_stock", "is_active", "created_at")
+    list_display = ("name", "category", "display_price",  "is_active", "created_at")
     list_filter = ("category", "is_active")
     search_fields = ("name", "description")
     prepopulated_fields = {"slug": ("name",)}
     inlines = [ProductVariantInline]
 
     fieldsets = (
-        (None, {"fields": ("category", "name", "slug", "description", "image", "is_active")}),
-        (
-            "Simple product price/stock",
-            {
-                "fields": ("price", "stock"),
-                "description": (
-                    "Only used if this product has NO variants below. As soon as you add "
-                    "one or more variants (e.g. sizes, materials), their prices/stock take "
-                    "over and these two fields are ignored on the storefront."
-                ),
-            },
-        ),
+        (None, {"fields": ("category", "name", "slug", "description", "image", "price", "is_active")}),
+        
     )
 
     def display_price(self, obj):
@@ -47,9 +37,6 @@ class ProductAdmin(admin.ModelAdmin):
         return f"KES {low:,.0f}" if low == high else f"KES {low:,.0f}–{high:,.0f}"
     display_price.short_description = "Price"
 
-    def display_stock(self, obj):
-        return obj.total_stock()
-    display_stock.short_description = "Stock"
 
 
 class OrderItemInline(admin.TabularInline):

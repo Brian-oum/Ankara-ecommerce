@@ -2,7 +2,8 @@
    1) Count the hero stats up from 0 the first time they scroll into view.
    2) Pause the crossfading hero image while the browser tab is hidden.
    3) Fade + rise each section up into place as it's scrolled into view.
-   All three respect prefers-reduced-motion. */
+   4) Cycle client testimonials one at a time, with dot navigation.
+   All four respect prefers-reduced-motion. */
 
 (function () {
   "use strict";
@@ -217,4 +218,86 @@
       fadeEls.forEach(function (el) { el.classList.add("in-view"); });
     }
   }
+
+  /* ---- testimonial slideshow: one review at a time ------------------
+     The number of slides is set by the template (top_product_reviews),
+     so this builds its dot navigation dynamically instead of assuming
+     a fixed count. Advances every 6s, pauses on hover/focus and while
+     the tab is hidden, and is fully inert under reduced motion. */
+  (function () {
+    var wrap = document.getElementById("testimonialSlideshow");
+    var track = document.getElementById("testimonialSlides");
+    if (!wrap || !track) return;
+
+    var slides = track.querySelectorAll(".testimonial-slide");
+    if (slides.length < 2) {
+      // nothing to cycle through
+      if (slides.length === 1) slides[0].classList.add("is-active");
+      return;
+    }
+
+    var current = 0;
+    var INTERVAL = 6000;
+    var timer = null;
+
+    function goTo(index) {
+      slides[current].classList.remove("is-active");
+      current = (index + slides.length) % slides.length;
+      slides[current].classList.add("is-active");
+
+      if (dots) {
+        dots.forEach(function (dot, i) {
+          dot.classList.toggle("is-active", i === current);
+        });
+      }
+    }
+
+    slides[0].classList.add("is-active");
+
+    // dot navigation, built to match however many slides rendered
+    var dots = null;
+    if (!reduceMotion) {
+      var dotsEl = document.createElement("div");
+      dotsEl.className = "testimonial-dots";
+      dots = [];
+      slides.forEach(function (_, i) {
+        var dot = document.createElement("button");
+        dot.type = "button";
+        dot.setAttribute("aria-label", "Show review " + (i + 1) + " of " + slides.length);
+        if (i === 0) dot.classList.add("is-active");
+        dot.addEventListener("click", function () {
+          goTo(i);
+          restart();
+        });
+        dots.push(dot);
+        dotsEl.appendChild(dot);
+      });
+      wrap.appendChild(dotsEl);
+    }
+
+    if (reduceMotion) return; // static: first slide only, no auto-advance
+
+    function start() {
+      timer = window.setInterval(function () { goTo(current + 1); }, INTERVAL);
+    }
+    function stop() {
+      if (timer) { window.clearInterval(timer); timer = null; }
+    }
+    function restart() { stop(); start(); }
+
+    start();
+
+    wrap.addEventListener("mouseenter", stop);
+    wrap.addEventListener("mouseleave", start);
+    wrap.addEventListener("focusin", stop);
+    wrap.addEventListener("focusout", start);
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        stop();
+      } else {
+        start();
+      }
+    });
+  })();
 })();

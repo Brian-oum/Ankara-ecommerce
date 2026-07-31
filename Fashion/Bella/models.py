@@ -33,7 +33,6 @@ class Product(models.Model):
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to="products/", blank=True, null=True)
-    stock = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -51,10 +50,10 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     # ---- variants -------------------------------------------------------
-    # A product can either be "simple" (uses price/stock above directly -
+    # A product can either be "simple" (uses price above directly -
     # most existing products) or have one or more ProductVariant rows
     # (e.g. scrunchie sizes, wig type/size, bonnet style). When variants
-    # exist they take over price/stock display and cart behaviour.
+    # exist they take over price display and cart behaviour.
 
     def has_variants(self):
         return self.variants.exists()
@@ -79,15 +78,6 @@ class Product(models.Model):
         prices = [v.price for v in variants]
         return min(prices), max(prices)
 
-    def total_stock(self):
-        if self.has_variants():
-            return sum(v.stock for v in self.variants.all())
-        return self.stock
-
-    def in_stock(self):
-        if self.has_variants():
-            return any(v.stock > 0 for v in self.variants.all())
-        return self.stock > 0
 
     # ---- ratings ----------------------------------------------------
     # Star ratings customers leave on this specific product. Only
@@ -113,7 +103,7 @@ class ProductVariant(models.Model):
     A purchasable option of a Product - e.g. a size (Extra Large, Large,
     Medium, Small, Mini), a material (Human Hair, Synthetic), a style
     (Satin, Ankara/Satin-lined), or an option like "With Notebook" /
-    "Cover Only". Each variant has its own price and stock, so a single
+    "Cover Only". Each variant has its own price , so a single
     product page can offer several options at different prices.
     """
 
@@ -124,7 +114,6 @@ class ProductVariant(models.Model):
         help_text="e.g. Extra Large, Human Hair, Waterproof, Cover Only",
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.PositiveIntegerField(default=0)
 
     is_default = models.BooleanField(
         default=False, help_text="Pre-selected option when the product page loads."
@@ -137,8 +126,6 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.name} — {self.name}"
 
-    def in_stock(self):
-        return self.stock > 0
 
 
 class Order(models.Model):

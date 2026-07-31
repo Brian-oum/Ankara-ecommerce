@@ -1,20 +1,249 @@
 {% extends "Bella/base.html" %}
-{% block title %}Products — Bella{% endblock %}
+{% block title %}All Products — Etsirbella Designs{% endblock %}
+{% block meta_description %}Browse Etsirbella Designs' full catalogue of handcrafted Afro wigs and Ankara accessories — limited collections in exceptional fabrics, made in Nairobi.{% endblock %}
+{% block og_title %}Shop All Products — Etsirbella Designs{% endblock %}
+{% block og_description %}Browse handcrafted Afro wigs and Ankara accessories — limited collections in exceptional fabrics, made in Nairobi.{% endblock %}
 
 {% block content %}
+<style>
+  /* ---- products-page search: lens icon inside the input, plus a
+     product+image autosuggest dropdown fed by product_search_suggest.
+     ------------------------------------------------------------------ */
+  .products-head {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .product-search-wrap {
+    position: relative;
+    flex: 1 1 320px;
+    max-width: 380px;
+  }
+
+  .product-search-form {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .product-search-icon-btn {
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--stone);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .product-search-icon-btn:hover,
+  .product-search-icon-btn:focus-visible {
+    color: var(--bramble);
+  }
+
+  .product-search-icon-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .product-search-input {
+    width: 100%;
+    padding: 11px 16px 11px 40px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--white);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--ink);
+  }
+
+  .product-search-input:focus {
+    outline: none;
+    border-color: var(--bramble);
+    box-shadow: 0 0 0 3px rgba(15, 128, 196, 0.12);
+  }
+
+  .product-search-suggestions {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 360px;
+    overflow-y: auto;
+    background: var(--white);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    box-shadow: 0 16px 32px -20px rgba(28, 27, 23, 0.35);
+  }
+
+  .product-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    text-decoration: none;
+    color: var(--ink);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .product-suggestion:last-child { border-bottom: none; }
+
+  .product-suggestion:first-child {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+
+  .product-suggestion:last-child {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+  }
+
+  .product-suggestion:hover,
+  .product-suggestion.is-active {
+    background: var(--ivory);
+  }
+
+  .product-suggestion-thumb {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    background: #EDE7D8;
+    border: 1px solid var(--hairline);
+    overflow: hidden;
+  }
+
+  .product-suggestion-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-suggestion-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+  }
+
+  .product-suggestion-name {
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .product-suggestion-price {
+    font-size: 12px;
+    color: var(--bramble);
+  }
+
+  .product-search-suggestions-empty {
+    padding: 14px;
+    font-size: 13px;
+    color: var(--stone);
+  }
+
+  .product-search-suggestions-loading {
+    padding: 14px;
+    font-size: 13px;
+    color: var(--stone);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .product-search-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--hairline);
+    border-top-color: var(--bramble);
+    border-radius: 50%;
+    animation: product-search-spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes product-search-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .product-suggestion-name mark {
+    background: none;
+    color: var(--bramble);
+    font-weight: 600;
+  }
+
+  /* Smaller screens: heading stacks above a full-width search bar.
+     Also tighten the section-head's margin/padding here - those are
+     sized (40px/20px) for a single-row desktop header, and look like
+     a big empty gap once the heading and search box stack into two
+     rows on mobile. */
+  @media (max-width: 720px) {
+    .products-head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+    }
+    .product-search-wrap {
+      /* .product-search-wrap's base rule is `flex: 1 1 320px` - a
+         preferred WIDTH for the row layout on desktop. Once
+         .products-head switches to flex-direction: column above, that
+         same flex-basis is read as a preferred HEIGHT instead, so the
+         wrapper was reserving ~320px of vertical space (with the ~48px
+         search box just sitting at the top of it) - that's both the
+         huge gap underneath it AND why the suggestions dropdown looked
+         broken, since `top: 100%` was measured against that inflated
+         320px box instead of the actual input height. `flex: none`
+         drops the flex-basis so the wrapper just sizes to its content. */
+      flex: none;
+      max-width: none;
+      width: 100%;
+    }
+  }
+</style>
+
 <section class="section">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head products-head">
       <div>
         <span class="eyebrow">Catalogue</span>
         <h1>All products</h1>
       </div>
-      <form method="get" style="display:flex; gap:10px;">
-        <input type="text" name="q" value="{{ query }}" placeholder="Search products…"
-               style="padding:10px 14px; border:1px solid var(--hairline); background:var(--white); font-size:14px;">
-        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
-        <button type="submit" class="btn btn-outline">Search</button>
-      </form>
+
+      <div class="product-search-wrap" id="productSearchWrap">
+        <form method="get" class="product-search-form" role="search" autocomplete="off">
+          <button type="submit" class="product-search-icon-btn" aria-label="Search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+          <input
+            type="text"
+            name="q"
+            id="productSearchInput"
+            class="product-search-input"
+            value="{{ query }}"
+            placeholder="Search products…"
+            aria-label="Search products"
+            aria-controls="productSearchSuggestions"
+            aria-expanded="false"
+            aria-autocomplete="list"
+            role="combobox"
+          >
+          {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+        </form>
+
+        <div class="product-search-suggestions" id="productSearchSuggestions" role="listbox" hidden></div>
+      </div>
     </div>
 
     {% if categories %}
@@ -112,6 +341,194 @@
         .catch(function () {})
         .finally(function () { btn.disabled = false; });
     });
+  });
+})();
+</script>
+
+<script>
+(function () {
+  var wrap = document.getElementById("productSearchWrap");
+  var input = document.getElementById("productSearchInput");
+  var box = document.getElementById("productSearchSuggestions");
+  if (!wrap || !input || !box) return;
+
+  var suggestUrl = "{% url 'product_search_suggest' %}";
+  var debounceTimer = null;
+  var activeIndex = -1;
+  var currentItems = [];
+
+  function closeBox() {
+    box.hidden = true;
+    box.innerHTML = "";
+    activeIndex = -1;
+    currentItems = [];
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+  }
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // Builds "...<mark>matched</mark> rest..." DOM nodes for a suggestion
+  // name, matching wherever `query` appears (case-insensitive), so the
+  // person can see why each result matched what they typed.
+  function appendHighlighted(container, text, query) {
+    if (!query) {
+      container.textContent = text;
+      return;
+    }
+    var re = new RegExp("(" + escapeRegExp(query) + ")", "ig");
+    var parts = text.split(re);
+    parts.forEach(function (part) {
+      if (part.toLowerCase() === query.toLowerCase()) {
+        var mark = document.createElement("mark");
+        mark.textContent = part;
+        container.appendChild(mark);
+      } else if (part) {
+        container.appendChild(document.createTextNode(part));
+      }
+    });
+  }
+
+  function showLoading() {
+    box.innerHTML = "";
+    var loading = document.createElement("div");
+    loading.className = "product-search-suggestions-loading";
+    var spinner = document.createElement("span");
+    spinner.className = "product-search-spinner";
+    loading.appendChild(spinner);
+    loading.appendChild(document.createTextNode("Searching…"));
+    box.appendChild(loading);
+    box.hidden = false;
+  }
+
+  function renderResults(query, results) {
+    currentItems = results;
+    activeIndex = -1;
+
+    if (!results.length) {
+      box.innerHTML = "";
+      var empty = document.createElement("div");
+      empty.className = "product-search-suggestions-empty";
+      empty.textContent = 'No products match "' + query + '"';
+      box.appendChild(empty);
+      box.hidden = false;
+      input.setAttribute("aria-expanded", "true");
+      return;
+    }
+
+    box.innerHTML = "";
+    results.forEach(function (item, i) {
+      var link = document.createElement("a");
+      link.href = item.url;
+      link.className = "product-suggestion";
+      link.id = "productSuggestion-" + i;
+      link.setAttribute("role", "option");
+      link.setAttribute("data-index", i);
+      link.setAttribute("aria-selected", "false");
+
+      var thumb = document.createElement("span");
+      thumb.className = "product-suggestion-thumb";
+      if (item.image) {
+        var img = document.createElement("img");
+        img.src = item.image;
+        img.alt = "";
+        thumb.appendChild(img);
+      }
+
+      var info = document.createElement("span");
+      info.className = "product-suggestion-info";
+
+      var name = document.createElement("span");
+      name.className = "product-suggestion-name";
+      appendHighlighted(name, item.name, query);
+      info.appendChild(name);
+
+      if (item.price) {
+        var price = document.createElement("span");
+        price.className = "product-suggestion-price";
+        price.textContent = "KES " + item.price;
+        info.appendChild(price);
+      }
+
+      link.appendChild(thumb);
+      link.appendChild(info);
+      box.appendChild(link);
+    });
+
+    box.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+  }
+
+  function fetchSuggestions(query) {
+    fetch(suggestUrl + "?q=" + encodeURIComponent(query), {
+      headers: { "X-Requested-With": "XMLHttpRequest" },
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) { renderResults(query, data.results || []); })
+      .catch(function () { closeBox(); });
+  }
+
+  input.addEventListener("input", function () {
+    var query = input.value.trim();
+    window.clearTimeout(debounceTimer);
+
+    if (query.length < 2) {
+      closeBox();
+      return;
+    }
+
+    showLoading();
+    debounceTimer = window.setTimeout(function () {
+      fetchSuggestions(query);
+    }, 220);
+  });
+
+  // Reopen the last set of suggestions if the person tabs/clicks back
+  // into the input without changing the query - avoids a needless
+  // re-fetch for a value we already have results for.
+  input.addEventListener("focus", function () {
+    var query = input.value.trim();
+    if (query.length >= 2 && currentItems.length && box.hidden) {
+      renderResults(query, currentItems);
+    }
+  });
+
+  input.addEventListener("keydown", function (e) {
+    if (box.hidden || !currentItems.length) return;
+    var options = box.querySelectorAll(".product-suggestion");
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      activeIndex = Math.min(activeIndex + 1, options.length - 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      activeIndex = Math.max(activeIndex - 1, 0);
+    } else if (e.key === "Enter") {
+      if (activeIndex >= 0) {
+        e.preventDefault();
+        window.location.href = currentItems[activeIndex].url;
+      }
+      return;
+    } else if (e.key === "Escape") {
+      closeBox();
+      return;
+    } else {
+      return;
+    }
+
+    options.forEach(function (opt, i) {
+      var isActive = i === activeIndex;
+      opt.classList.toggle("is-active", isActive);
+      opt.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    options[activeIndex].scrollIntoView({ block: "nearest" });
+    input.setAttribute("aria-activedescendant", options[activeIndex].id || "");
+  });
+
+  document.addEventListener("click", function (e) {
+    if (!wrap.contains(e.target)) closeBox();
   });
 })();
 </script>

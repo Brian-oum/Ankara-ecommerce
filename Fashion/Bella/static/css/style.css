@@ -859,13 +859,16 @@ img { max-width: 100%; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-copy, .hero-copy .eyebrow, .hero-copy h1, .hero-copy .lede, .hero-cta-row,
-  .hero-stats, .hero-blob, .cycle-slide, .reveal {
+  .hero-stats, .hero-blob, .cycle-slide, .reveal,
+  .testimonial-slide {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
   .cycle-slide:not(:first-child) { display: none; }
+  .testimonial-slide { position: absolute; visibility: hidden; }
+  .testimonial-slide.is-active { position: relative; visibility: visible; }
 }
 
 /* ---- sections ----------------------------------------------------------- */
@@ -1606,13 +1609,71 @@ img { max-width: 100%; display: block; }
   margin-top: 12px;
 }
 
+/* ---- testimonial slideshow: one review shown at a time --------------- */
+.testimonial-slideshow {
+  position: relative;
+  margin: 40px auto 0;
+  max-width: 640px;
+  text-align: center;
+}
+
+.testimonial-slides {
+  position: relative;
+  min-height: 180px;
+}
+
+.testimonial-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity .6s ease, transform .6s ease, visibility 0s linear .6s;
+}
+
+.testimonial-slide.is-active {
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity .6s ease, transform .6s ease;
+}
+
+/* dot navigation, added by JS so the count always matches how many
+   reviews the template rendered */
+.testimonial-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.testimonial-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(246, 243, 236, 0.3);
+  cursor: pointer;
+  transition: background .3s ease, transform .3s ease;
+}
+
+.testimonial-dots button:hover { background: rgba(246, 243, 236, 0.55); }
+
+.testimonial-dots button.is-active {
+  background: var(--gold);
+  transform: scale(1.2);
+}
+
 .testimonial {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 18px;
 }
 
-.testimonial .stars { display: flex; gap: 3px; color: var(--gold); }
+.testimonial .stars { display: flex; justify-content: center; gap: 3px; color: var(--gold); }
 .testimonial .stars svg { width: 14px; height: 14px; }
 
 .testimonial blockquote {
@@ -1635,6 +1696,7 @@ img { max-width: 100%; display: block; }
 @media (max-width: 860px) {
   .testimonial-band { padding: 90px 0; min-height: 0; }
   .testimonial-grid { grid-template-columns: 1fr; gap: 40px; }
+  .testimonial-slideshow { max-width: none; }
 }
 
 /* ---- CTA booking band: light card, phone mockup + copy, two-up ------- */
@@ -1850,7 +1912,12 @@ img { max-width: 100%; display: block; }
   display: flex;
   flex-direction: column;
 }
-
+.legal-container { max-width: 760px; }
+.legal-header { margin-bottom: 40px; }
+.legal-body h2 { margin-top: 36px; margin-bottom: 12px; font-size: 20px; }
+.legal-body p, .legal-body li { line-height: 1.7; }
+.legal-list { padding-left: 20px; }
+.legal-list li { margin-bottom: 8px; }
 .site-footer .container {
   display: flex;
   flex-direction: column;

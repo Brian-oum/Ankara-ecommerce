@@ -35,66 +35,40 @@
         </div>
       {% endif %}
 
-      {% if product.in_stock %}
-        <form method="post" action="{% url 'cart_add' product.id %}" id="add-to-cart-form">
-          {% csrf_token %}
+      <form method="post" action="{% url 'cart_add' product.id %}" id="add-to-cart-form">
+        {% csrf_token %}
 
-          {% if variants %}
-            <div class="variant-picker">
-              <span class="variant-label">Choose an option</span>
-              <div class="variant-options">
-                {% for variant in variants %}
-                  <label class="variant-pill {% if not variant.in_stock %}is-disabled{% endif %} {% if variant == default_variant %}is-selected{% endif %}">
-                    <input
-                      type="radio"
-                      name="variant_id"
-                      value="{{ variant.id }}"
-                      data-price="{{ variant.price }}"
-                      data-stock="{{ variant.stock }}"
-                      {% if variant == default_variant %}checked{% endif %}
-                      {% if not variant.in_stock %}disabled{% endif %}
-                      required
-                    >
-                    <span>{{ variant.name }}</span>
-                    {% if not variant.in_stock %}<span class="variant-oos">sold out</span>{% endif %}
-                  </label>
-                {% endfor %}
-              </div>
+        {% if variants %}
+          <div class="variant-picker">
+            <span class="variant-label">Choose an option</span>
+            <div class="variant-options">
+              {% for variant in variants %}
+                <label class="variant-pill {% if variant == default_variant %}is-selected{% endif %}">
+                  <input
+                    type="radio"
+                    name="variant_id"
+                    value="{{ variant.id }}"
+                    data-price="{{ variant.price }}"
+                    {% if variant == default_variant %}checked{% endif %}
+
+                    required
+                  >
+                  <span>{{ variant.name }}</span>
+                </label>
+              {% endfor %}
             </div>
-          {% endif %}
-
-          <div class="qty-row">
-            <input
-              type="number"
-              name="quantity"
-              value="1"
-              min="1"
-              id="js-qty"
-              max="{% if variants %}{{ default_variant.stock }}{% else %}{{ product.stock }}{% endif %}"
-            >
-            <button type="submit" class="btn" id="js-add-btn">Add to bag</button>
-
-            <button
-              type="button"
-              class="btn btn-outline detail-wishlist-btn {% if in_wishlist %}is-active{% endif %}"
-              id="js-wishlist-btn"
-              data-toggle-url="{% url 'wishlist_toggle' product.id %}"
-              aria-pressed="{% if in_wishlist %}true{% else %}false{% endif %}"
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 21s-7.5-4.7-10-9.3C.6 8.2 2.3 4.5 6 4c2.1-.3 4 .8 6 3 2-2.2 3.9-3.3 6-3 3.7.5 5.4 4.2 4 7.7C19.5 16.3 12 21 12 21z"/>
-              </svg>
-              <span class="detail-wishlist-label">{% if in_wishlist %}In wishlist{% else %}Wishlist{% endif %}</span>
-            </button>
           </div>
-        </form>
+        {% endif %}
 
-        <p style="color: var(--stone); font-size: 13px;" id="js-stock-note">
-          {% if variants %}{{ default_variant.stock }} in stock{% else %}{{ product.stock }} in stock{% endif %}
-        </p>
-      {% else %}
         <div class="qty-row">
-          <button class="btn" disabled>Sold out</button>
+          <input
+            type="number"
+            name="quantity"
+            value="1"
+            min="1"
+            id="js-qty"
+          >
+          <button type="submit" class="btn" id="js-add-btn">Add to bag</button>
 
           <button
             type="button"
@@ -109,7 +83,7 @@
             <span class="detail-wishlist-label">{% if in_wishlist %}In wishlist{% else %}Wishlist{% endif %}</span>
           </button>
         </div>
-      {% endif %}
+      </form>
     </div>
   </div>
 </section>
@@ -119,9 +93,6 @@
 (function () {
   var form = document.getElementById("add-to-cart-form");
   var priceEl = document.getElementById("js-price");
-  var qtyInput = document.getElementById("js-qty");
-  var stockNote = document.getElementById("js-stock-note");
-  var addBtn = document.getElementById("js-add-btn");
 
   function money(n) {
     return "KES " + Number(n).toLocaleString();
@@ -137,19 +108,7 @@
     if (!checked) return;
 
     var price = checked.getAttribute("data-price");
-    var stock = parseInt(checked.getAttribute("data-stock"), 10);
-
     priceEl.textContent = money(price);
-    qtyInput.max = stock;
-    if (parseInt(qtyInput.value, 10) > stock) qtyInput.value = Math.max(stock, 1);
-
-    if (stock > 0) {
-      stockNote.textContent = stock + " in stock";
-      addBtn.disabled = false;
-    } else {
-      stockNote.textContent = "Out of stock";
-      addBtn.disabled = true;
-    }
   }
 
   form.querySelectorAll('input[name="variant_id"]').forEach(function (input) {

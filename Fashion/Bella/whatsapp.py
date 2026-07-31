@@ -76,6 +76,33 @@ def build_order_whatsapp_link(order, order_items, to_number=None):
     return f"https://wa.me/{to_number}?text={quote(message)}"
 
 
+def build_contact_whatsapp_link(contact_message, to_number=None):
+    """
+    Customer -> Business. Same idea as build_order_whatsapp_link(), but
+    for a general contact-form enquiry rather than an order. The contact
+    page shows this after a successful submit so the customer can also
+    ping the store on WhatsApp instantly, instead of only leaving a
+    message that sits in the database/email until someone checks it.
+
+    `contact_message` - a ContactMessage instance (or anything with
+    name/email/subject/message attributes) fresh from the form.
+    """
+    to_number = _normalize_msisdn(to_number or settings.WHATSAPP_BUSINESS_NUMBER)
+
+    subject = (getattr(contact_message, "subject", "") or "").strip()
+    subject_line = f"Subject: {subject}\n\n" if subject else ""
+
+    message = (
+        f"Hi! I just sent this through your website contact form:\n\n"
+        f"Name: {contact_message.name}\n"
+        f"Email: {contact_message.email}\n\n"
+        f"{subject_line}"
+        f"{contact_message.message}"
+    )
+
+    return f"https://wa.me/{to_number}?text={quote(message)}"
+
+
 def build_order_admin_reply_link(order, order_items):
     """
     Business -> Customer. Return a https://wa.me/... URL that opens a
