@@ -22,6 +22,7 @@ from .models import (
     ProductReview, StoreReview,
 )
 from .services import JengaClient, generate_reference
+from .whatsapp import build_contact_whatsapp_link
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,15 @@ def home(request):
     wishlist_ids = set(Wishlist(request).product_ids)
     store_reviews = list(StoreReview.approved()[:6])
 
+    # Customer stories slideshow: highest-rated approved product reviews
+    # (ties broken by most recent). Falls back to the hardcoded defaults
+    # baked into the template when there aren't any yet.
+    top_product_reviews = list(
+        ProductReview.objects.filter(is_approved=True)
+        .select_related("product")
+        .order_by("-rating", "-created_at")[:6]
+    )
+
     return render(request, "Bella/home.html", {
         "featured_products": featured_products,
         "hero_main": hero_main,
@@ -81,6 +91,7 @@ def home(request):
         "store_rating": StoreReview.average_rating(),
         "store_rating_percent": StoreReview.average_rating_percent(),
         "store_review_count": StoreReview.review_count(),
+        "top_product_reviews": top_product_reviews,
     })
 
 
@@ -109,6 +120,36 @@ def product_list(request):
         "query": query or "",
         "wishlist_ids": wishlist_ids,
     })
+
+
+def product_search_suggest(request):
+    """
+    JSON typeahead for the products-page search box. Returns a short list
+    of name/image/price/url matches for whatever's been typed so far -
+    powers the autosuggest dropdown as the person types, without a full
+    page reload. Wire this up in urls.py, e.g.:
+
+        path("products/search-suggest/", views.product_search_suggest, name="product_search_suggest"),
+    """
+    query = (request.GET.get("q") or "").strip()
+    if len(query) < 2:
+        return JsonResponse({"results": []})
+
+    products = (
+        Product.objects.filter(is_active=True, name__icontains=query)
+        .order_by("name")[:8]
+    )
+
+    results = [
+        {
+            "name": product.name,
+            "url": reverse("product_detail", args=[product.slug]),
+            "image": product.image.url if product.image else "",
+            "price": str(product.price),
+        }
+        for product in products
+    ]
+    return JsonResponse({"results": results})
 
 
 def product_detail(request, slug):
@@ -155,12 +196,26 @@ def contact(request):
     if request.method == "POST":
         form = ContactForm(request.POST)
         if form.is_valid():
-            ContactMessage.objects.create(**form.cleaned_data)
+            contact_message = ContactMessage.objects.create(**form.cleaned_data)
+            # Stash the WhatsApp link in the session rather than passing it
+            # straight to a template - we redirect after POST (so a page
+            # refresh doesn't resubmit the form), and the link needs to
+            # survive that redirect. Popped below so it only shows once,
+            # right after the submit that generated it.
+            request.session["last_contact_whatsapp_link"] = build_contact_whatsapp_link(contact_message)
             messages.success(request, "Thanks for reaching out - we'll reply soon.")
             return redirect("contact")
+        else:
+            # Field-level errors already render inline under each input,
+            # but without this the page just re-renders with no visible
+            # sign that the submit even happened - easy to miss, especially
+            # if all the invalid fields are scrolled out of view.
+            messages.error(request, "Please fix the errors below and try again.")
     else:
         form = ContactForm()
-    return render(request, "Bella/contact.html", {"form": form})
+
+    whatsapp_link = request.session.pop("last_contact_whatsapp_link", None)
+    return render(request, "Bella/contact.html", {"form": form, "whatsapp_link": whatsapp_link})
 
 
 def store_reviews(request):
@@ -321,23 +376,30 @@ def cart_add(request, product_id):
 @require_POST
 def cart_remove(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    variant_id = request.POST.get("variant_id")
+    variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
+
     cart = Cart(request)
-    cart.remove(product)
+    cart.remove(product, variant=variant)
+    label = f"{product.name} ({variant.name})" if variant else product.name
     if _is_ajax(request):
         return JsonResponse(_cart_payload(cart))
-    messages.info(request, f"{product.name} removed from your bag.")
+    messages.info(request, f"{label} removed from your bag.")
     return redirect("cart_detail")
 
 
 @require_POST
 def cart_update(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    variant_id = request.POST.get("variant_id")
+    variant = get_object_or_404(ProductVariant, id=variant_id, product=product) if variant_id else None
+
     cart = Cart(request)
     quantity = int(request.POST.get("quantity", 1))
     if quantity <= 0:
-        cart.remove(product)
+        cart.remove(product, variant=variant)
     else:
-        cart.add(product=product, quantity=quantity, update_quantity=True)
+        cart.add(product=product, quantity=quantity, update_quantity=True, variant=variant)
     if _is_ajax(request):
         return JsonResponse(_cart_payload(cart))
     return redirect("cart_detail")
@@ -358,7 +420,6 @@ def _wishlist_payload(wishlist):
             "name": product.name,
             "price": str(product.price),
             "image": product.image.url if product.image else "",
-            "in_stock": product.in_stock(),
             "url": reverse("product_detail", args=[product.slug]),
             "remove_url": reverse("wishlist_remove", args=[product.id]),
             "add_to_cart_url": reverse("cart_add", args=[product.id]),
@@ -681,3 +742,10 @@ def payment_callback(request):
         "status": "success",
         "message": "Callback received"
     })
+
+def privacy_policy(request):
+    return render(request, "Bella/privacy.html")
+
+
+def terms_of_service(request):
+    return render(request, "Bella/terms.html")

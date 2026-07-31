@@ -1,6 +1,9 @@
 {% extends "Bella/base.html" %}
 {% load static %}
-{% block title %}Luxe Salon & Studio — Your best look, every day{% endblock %}
+{% block title %}Etsirbella Designs Ltd — Your best look, every day{% endblock %}
+{% block meta_description %}From stunning afro human hair wigs to flawless Ankara accessories, Etsirbella Designs brings out the most confident you. Shop limited collections handcrafted in Nairobi.{% endblock %}
+{% block og_title %}Etsirbella Designs Ltd — Your best look, every day{% endblock %}
+{% block og_description %}From stunning afro human hair wigs to flawless Ankara accessories, Etsirbella Designs brings out the most confident you.{% endblock %}
 
 {% block content %}
 
@@ -29,7 +32,7 @@
             Where beauty meets artistry
           </span>
           <h1>Your best look, <span class="accent">every day</span>.</h1>
-          <p class="lede">From stunning human hair wigs to flawless Ankara accessories, we bring out the most confident you.</p>
+          <p class="lede">From stunning afro human hair wigs to flawless Ankara accessories, we bring out the most confident you.</p>
 
           <div class="hero-cta-row">
             <a href="{% url 'contact' %}" class="btn-pill">
@@ -300,45 +303,158 @@
       <a href="{% url 'store_reviews' %}" class="btn btn-outline">Leave a review</a>
     </div>
 
-    {% if store_reviews %}
-      <div class="testimonial-grid">
-        {% for review in store_reviews %}
-          <div class="testimonial">
-            {% include "Bella/_rating_stars.html" with rating=review.rating percent=review.rating_percent count=None %}
-            {% if review.comment %}<blockquote>{{ review.comment }}</blockquote>{% endif %}
-            <cite><strong>{{ review.name }}</strong></cite>
+    <div class="testimonial-slideshow" id="testimonialSlideshow">
+      <div class="testimonial-slides" id="testimonialSlides">
+        {% if top_product_reviews %}
+          {% for review in top_product_reviews %}
+            <div class="testimonial-slide">
+              <div class="testimonial">
+                {% include "Bella/_rating_stars.html" with rating=review.rating percent=review.rating_percent count=None %}
+                {% if review.comment %}<blockquote>{{ review.comment }}</blockquote>{% endif %}
+                <cite><strong>{{ review.name }}</strong>{% if review.product %}on {{ review.product.name }}{% endif %}</cite>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="testimonial-slide">
+            <div class="testimonial">
+              <span class="stars">
+                {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+              </span>
+              <blockquote>My colorist finally understood exactly what &ldquo;natural but brighter&rdquo; meant. Booking again next month.</blockquote>
+              <cite><strong>Amara N.</strong>Color &amp; Highlights client</cite>
+            </div>
           </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="testimonial-grid">
-        <div class="testimonial">
-          <span class="stars">
-            {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
-          </span>
-          <blockquote>My colorist finally understood exactly what &ldquo;natural but brighter&rdquo; meant. Booking again next month.</blockquote>
-          <cite><strong>Amara N.</strong>Color &amp; Highlights client</cite>
-        </div>
 
-        <div class="testimonial">
-          <span class="stars">
-            {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
-          </span>
-          <blockquote>Booked the bridal package on a whim and it turned out to be the best decision of my wedding week.</blockquote>
-          <cite><strong>Faith W.</strong>Bridal client</cite>
-        </div>
+          <div class="testimonial-slide">
+            <div class="testimonial">
+              <span class="stars">
+                {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+              </span>
+              <blockquote>Booked the bridal package on a whim and it turned out to be the best decision of my wedding week.</blockquote>
+              <cite><strong>Faith W.</strong>Bridal client</cite>
+            </div>
+          </div>
 
-        <div class="testimonial">
-          <span class="stars">
-            {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
-          </span>
-          <blockquote>The facial felt like an hour of quiet in the middle of a hectic week. My skin has never looked better.</blockquote>
-          <cite><strong>Brian K.</strong>Facials client</cite>
-        </div>
+          <div class="testimonial-slide">
+            <div class="testimonial">
+              <span class="stars">
+                {% for _ in "12345" %}<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.5l-6.1 3.1 1.4-6.8-5.1-4.7 6.9-.8z"/></svg>{% endfor %}
+              </span>
+              <blockquote>The facial felt like an hour of quiet in the middle of a hectic week. My skin has never looked better.</blockquote>
+              <cite><strong>Brian K.</strong>Facials client</cite>
+            </div>
+          </div>
+        {% endif %}
       </div>
-    {% endif %}
+
+      <div class="testimonial-dots" id="testimonialDots"></div>
+    </div>
   </div>
 </section>
+
+<style>
+  .testimonial-slideshow {
+    position: relative;
+    overflow: hidden;
+  }
+  .testimonial-slides {
+    display: flex;
+    transition: transform 0.6s ease-in-out;
+  }
+  .testimonial-slide {
+    flex: 0 0 100%;
+    min-width: 100%;
+    display: flex;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0 4px;
+  }
+  .testimonial-slide .testimonial {
+    max-width: 640px;
+    text-align: center;
+  }
+  .testimonial-slide .testimonial cite {
+    display: block;
+    margin-top: 4px;
+  }
+  .testimonial-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .testimonial-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: none;
+    background: var(--hairline, #ddd);
+    padding: 0;
+    cursor: pointer;
+    transition: width 0.3s ease, border-radius 0.3s ease, background 0.3s ease;
+  }
+  .testimonial-dot.is-active {
+    width: 22px;
+    border-radius: 4px;
+    background: var(--ink, #1a1a1a);
+  }
+</style>
+
+<script>
+(function () {
+  var wrap = document.getElementById("testimonialSlideshow");
+  var track = document.getElementById("testimonialSlides");
+  var dotsWrap = document.getElementById("testimonialDots");
+  if (!wrap || !track) return;
+
+  var slides = track.querySelectorAll(".testimonial-slide");
+  var count = slides.length;
+  if (count === 0) return;
+
+  var index = 0;
+  var timer;
+
+  if (count > 1) {
+    for (var i = 0; i < count; i++) {
+      var dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "testimonial-dot" + (i === 0 ? " is-active" : "");
+      dot.setAttribute("aria-label", "Show testimonial " + (i + 1));
+      (function (slideIndex) {
+        dot.addEventListener("click", function () {
+          goTo(slideIndex);
+          resetTimer();
+        });
+      })(i);
+      dotsWrap.appendChild(dot);
+    }
+  }
+
+  var dots = dotsWrap.querySelectorAll(".testimonial-dot");
+
+  function goTo(i) {
+    index = (i + count) % count;
+    track.style.transform = "translateX(-" + index * 100 + "%)";
+    dots.forEach(function (d, di) {
+      d.classList.toggle("is-active", di === index);
+    });
+  }
+
+  function resetTimer() {
+    if (count <= 1) return;
+    clearInterval(timer);
+    timer = setInterval(function () {
+      goTo(index + 1);
+    }, 5000);
+  }
+
+  resetTimer();
+
+  wrap.addEventListener("mouseenter", function () { clearInterval(timer); });
+  wrap.addEventListener("mouseleave", resetTimer);
+})();
+</script>
 
 <section class="cta-band fade-up" id="book">
   <div class="container cta-band-inner">
