@@ -121,3 +121,53 @@ def build_order_admin_reply_link(order, order_items):
     )
 
     return f"https://wa.me/{to_number}?text={quote(message)}"
+
+
+def build_payment_failed_link(order):
+    """
+    Business -> Customer. Shown to the admin (order/payment list, order
+    detail) when a payment didn't go through, so they can nudge the
+    customer to retry or offer another way to pay.
+    """
+    to_number = _normalize_msisdn(order.phone)
+
+    message = (
+        f"Hi {order.name}, we weren't able to confirm payment for your "
+        f"order {order.order_reference}. No charge should have gone "
+        f"through - reply here and we'll help you sort it out, or send "
+        f"a fresh payment link."
+    )
+
+    return f"https://wa.me/{to_number}?text={quote(message)}"
+
+
+def build_order_shipped_link(order):
+    """
+    Business -> Customer. Shown to the admin once an order's
+    delivery_status moves to "shipped" - a heads-up that it's on its way.
+    """
+    to_number = _normalize_msisdn(order.phone)
+
+    message = (
+        f"Hi {order.name}! Your order {order.order_reference} "
+        f"(KES {order.total_amount}) has shipped and is on its way to you. "
+        f"We'll let you know the moment it arrives."
+    )
+
+    return f"https://wa.me/{to_number}?text={quote(message)}"
+
+
+def build_order_delivered_link(order):
+    """
+    Business -> Customer. Shown to the admin once an order's
+    delivery_status moves to "delivered".
+    """
+    to_number = _normalize_msisdn(order.phone)
+
+    message = (
+        f"Hi {order.name}! Order {order.order_reference} has been "
+        f"delivered. We hope you love it - thank you for shopping with "
+        f"Etsirbella Designs!"
+    )
+
+    return f"https://wa.me/{to_number}?text={quote(message)}"

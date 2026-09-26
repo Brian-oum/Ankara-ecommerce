@@ -1,0 +1,296 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Settings — Manager{% endblock %}
+{% block manager_title %}Settings{% endblock %}
+
+{% block manager_content %}
+<div class="manager-settings">
+
+  <div class="manager-settings-tabs" role="tablist" aria-label="Settings sections">
+    <button type="button" class="manager-settings-tab is-active" role="tab" aria-selected="true" aria-controls="settings-panel-avatar" id="settings-tab-avatar" data-tab="avatar">Profile photo</button>
+    <button type="button" class="manager-settings-tab" role="tab" aria-selected="false" aria-controls="settings-panel-account" id="settings-tab-account" data-tab="account">Account details</button>
+    <button type="button" class="manager-settings-tab" role="tab" aria-selected="false" aria-controls="settings-panel-appearance" id="settings-tab-appearance" data-tab="appearance">Appearance</button>
+    <button type="button" class="manager-settings-tab" role="tab" aria-selected="false" aria-controls="settings-panel-notifications" id="settings-tab-notifications" data-tab="notifications">Notifications</button>
+    <button type="button" class="manager-settings-tab" role="tab" aria-selected="false" aria-controls="settings-panel-password" id="settings-tab-password" data-tab="password">Password</button>
+  </div>
+
+  <section class="manager-settings-panel" id="settings-panel-avatar" role="tabpanel" aria-labelledby="settings-tab-avatar" data-panel="avatar">
+    <div class="manager-settings-section-head">
+      <h2>Profile photo</h2>
+      <p class="manager-muted">This also updates the picture in the sidebar.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="manager-settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="avatar">
+
+      <div class="manager-settings-avatar-row">
+        {% if profile.photo %}
+          <img src="{{ profile.photo.url }}" alt="" class="manager-thumb">
+        {% endif %}
+        {{ avatar_form.photo }}
+      </div>
+      {% if avatar_form.photo.errors %}
+        <p class="manager-field-error">{{ avatar_form.photo.errors.0 }}</p>
+      {% endif %}
+
+      <div>
+        <button type="submit" class="btn btn-outline">Upload photo</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="manager-settings-panel" id="settings-panel-account" role="tabpanel" aria-labelledby="settings-tab-account" data-panel="account" hidden>
+    <div class="manager-settings-section-head">
+      <h2>Account details</h2>
+    </div>
+
+    <form method="post" class="manager-settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="account">
+
+      <div class="manager-field">
+        <label for="{{ account_form.first_name.id_for_label }}">First name</label>
+        {{ account_form.first_name }}
+        {% if account_form.first_name.errors %}
+          <p class="manager-field-error">{{ account_form.first_name.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="manager-field">
+        <label for="{{ account_form.last_name.id_for_label }}">Last name</label>
+        {{ account_form.last_name }}
+        {% if account_form.last_name.errors %}
+          <p class="manager-field-error">{{ account_form.last_name.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="manager-field">
+        <label for="{{ account_form.email.id_for_label }}">Email address</label>
+        {{ account_form.email }}
+        {% if account_form.email.errors %}
+          <p class="manager-field-error">{{ account_form.email.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <button type="submit" class="btn">Save changes</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="manager-settings-panel" id="settings-panel-appearance" role="tabpanel" aria-labelledby="settings-tab-appearance" data-panel="appearance" hidden>
+    <div class="manager-settings-section-head">
+      <h2>Appearance</h2>
+      <p class="manager-muted">Applies across the manager area, on every device you sign into.</p>
+    </div>
+
+    <form method="post" class="manager-settings-form" id="managerThemeSettingsForm">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="theme">
+
+      <div class="mgr-segmented" role="radiogroup" aria-label="Theme">
+        <input type="radio" name="{{ theme_form.theme_preference.html_name }}" value="light"
+               id="mgr_theme_light" {% if profile.theme_preference == 'light' %}checked{% endif %}>
+        <label for="mgr_theme_light">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+          Light
+        </label>
+
+        <input type="radio" name="{{ theme_form.theme_preference.html_name }}" value="dark"
+               id="mgr_theme_dark" {% if profile.theme_preference == 'dark' %}checked{% endif %}>
+        <label for="mgr_theme_dark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+          Dark
+        </label>
+
+        <input type="radio" name="{{ theme_form.theme_preference.html_name }}" value="system"
+               id="mgr_theme_system" {% if profile.theme_preference == 'system' %}checked{% endif %}>
+        <label for="mgr_theme_system">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          System
+        </label>
+      </div>
+      {% if theme_form.theme_preference.errors %}
+        <p class="manager-field-error">{{ theme_form.theme_preference.errors.0 }}</p>
+      {% endif %}
+
+      <div>
+        <button type="submit" class="btn">Save appearance</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="manager-settings-panel" id="settings-panel-notifications" role="tabpanel" aria-labelledby="settings-tab-notifications" data-panel="notifications" hidden>
+    <div class="manager-settings-section-head">
+      <h2>Notifications</h2>
+      <p class="manager-muted">Choose what you get emailed about at {{ request.user.email }}.</p>
+    </div>
+
+    <form method="post" class="manager-settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="notifications">
+
+      <div class="mgr-switch-row">
+        <div>
+          <div class="mgr-switch-row-label">Email notifications</div>
+          <div class="mgr-switch-row-help">Master switch — turn off to stop all manager emails below.</div>
+        </div>
+        <label class="mgr-switch">
+          {{ notifications_form.email_notifications_enabled }}
+          <span class="mgr-switch-track"></span>
+        </label>
+      </div>
+
+      <div class="mgr-switch-row">
+        <div>
+          <div class="mgr-switch-row-label">New orders</div>
+          <div class="mgr-switch-row-help">Get an email the moment a customer checks out.</div>
+        </div>
+        <label class="mgr-switch">
+          {{ notifications_form.notify_new_orders }}
+          <span class="mgr-switch-track"></span>
+        </label>
+      </div>
+
+      <div class="mgr-switch-row">
+        <div>
+          <div class="mgr-switch-row-label">New reviews</div>
+          <div class="mgr-switch-row-help">Get an email when a product or store review needs approval.</div>
+        </div>
+        <label class="mgr-switch">
+          {{ notifications_form.notify_new_reviews }}
+          <span class="mgr-switch-track"></span>
+        </label>
+      </div>
+
+      <div class="mgr-switch-row">
+        <div>
+          <div class="mgr-switch-row-label">Contact messages</div>
+          <div class="mgr-switch-row-help">Get an email when someone submits the contact form.</div>
+        </div>
+        <label class="mgr-switch">
+          {{ notifications_form.notify_contact_messages }}
+          <span class="mgr-switch-track"></span>
+        </label>
+      </div>
+
+      <div>
+        <button type="submit" class="btn">Save notification preferences</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="manager-settings-panel" id="settings-panel-password" role="tabpanel" aria-labelledby="settings-tab-password" data-panel="password" hidden>
+    <div class="manager-settings-section-head">
+      <h2>Change password</h2>
+    </div>
+
+    <form method="post" class="manager-settings-form">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="password">
+
+      {% if password_form.non_field_errors %}
+        <p class="manager-field-error">{{ password_form.non_field_errors.0 }}</p>
+      {% endif %}
+
+      <div class="manager-field">
+        <label for="{{ password_form.old_password.id_for_label }}">Current password</label>
+        {{ password_form.old_password }}
+        {% if password_form.old_password.errors %}
+          <p class="manager-field-error">{{ password_form.old_password.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="manager-field">
+        <label for="{{ password_form.new_password1.id_for_label }}">New password</label>
+        {{ password_form.new_password1 }}
+        {% if password_form.new_password1.errors %}
+          <p class="manager-field-error">{{ password_form.new_password1.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div class="manager-field">
+        <label for="{{ password_form.new_password2.id_for_label }}">Confirm new password</label>
+        {{ password_form.new_password2 }}
+        {% if password_form.new_password2.errors %}
+          <p class="manager-field-error">{{ password_form.new_password2.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <button type="submit" class="btn">Change password</button>
+      </div>
+    </form>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Tabs: shows one settings section at a time instead of one long
+  // scrolling page. Selection is remembered in sessionStorage (not just
+  // in memory) specifically so it survives the full-page reload each
+  // form's own POST-redirect-GET does on save - without this, saving
+  // "Notifications" would bounce you back to the first tab.
+  (function () {
+    "use strict";
+    var STORAGE_KEY = "managerSettingsActiveTab";
+    var tabs = Array.prototype.slice.call(document.querySelectorAll(".manager-settings-tab"));
+    var panels = Array.prototype.slice.call(document.querySelectorAll(".manager-settings-panel"));
+    if (!tabs.length || !panels.length) return;
+
+    function activate(tabName, opts) {
+      opts = opts || {};
+      var found = tabs.some(function (t) { return t.getAttribute("data-tab") === tabName; });
+      if (!found) return;
+
+      tabs.forEach(function (tab) {
+        var match = tab.getAttribute("data-tab") === tabName;
+        tab.classList.toggle("is-active", match);
+        tab.setAttribute("aria-selected", match ? "true" : "false");
+      });
+      panels.forEach(function (panel) {
+        if (panel.getAttribute("data-panel") === tabName) {
+          panel.removeAttribute("hidden");
+        } else {
+          panel.setAttribute("hidden", "");
+        }
+      });
+
+      if (opts.persist !== false) {
+        try { sessionStorage.setItem(STORAGE_KEY, tabName); } catch (e) {}
+      }
+    }
+
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        activate(tab.getAttribute("data-tab"));
+      });
+    });
+
+    var hash = (window.location.hash || "").replace("#", "");
+    var initial = hash;
+    if (!initial) {
+      try { initial = sessionStorage.getItem(STORAGE_KEY); } catch (e) {}
+    }
+    if (!initial || !tabs.some(function (t) { return t.getAttribute("data-tab") === initial; })) {
+      initial = tabs[0].getAttribute("data-tab");
+    }
+    activate(initial);
+  })();
+
+  // Instant preview: the segmented control applies its theme the moment
+  // you click it, rather than waiting for "Save appearance" + reload.
+  // The click still submits normally afterwards to persist it.
+  (function () {
+    var inputs = document.querySelectorAll('#managerThemeSettingsForm input[type="radio"]');
+    inputs.forEach(function (input) {
+      input.addEventListener('change', function () {
+        document.documentElement.setAttribute('data-theme', input.value);
+        if (window.__managerThemeResolve) window.__managerThemeResolve();
+      });
+    });
+  })();
+</script>
+{% endblock %}

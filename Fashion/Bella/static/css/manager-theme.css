@@ -1,0 +1,394 @@
+/* ==========================================================================
+   Manager area theming — light/dark/system.
+   Load this AFTER style.css in manager_base.html.
+
+   Important: every dark-mode rule below is scoped under
+   html[data-theme-resolved="dark"], so in Light mode this file changes
+   NOTHING about how the manager area already looks - it only adds the
+   dark palette on top when dark mode is active. The only unscoped rules
+   are for brand-new components (the theme segmented control and the
+   notification toggle switches, and the flat Settings layout) that had
+   no styling in style.css to begin with - those use your real tokens
+   (--ivory, --ink, --bramble, --hairline, --stone) directly, so they
+   already match the rest of the site in Light mode.
+   ========================================================================== */
+
+/* ==========================================================================
+   Dark mode — scoped, additive overrides only
+   ========================================================================== */
+
+html[data-theme-resolved="dark"] {
+  --mgr-bg: #14161A;
+  --mgr-surface: #1C1F25;
+  --mgr-surface-raised: #22262D;
+  --mgr-border: #2E333B;
+  --mgr-text: #ECEAE4;
+  --mgr-text-muted: #9A9C9C;
+  --mgr-accent: #4CA6E8;
+  --mgr-accent-contrast: #0B1116;
+  --mgr-danger: #E17263;
+  --mgr-success: #79B366;
+  --mgr-warning: #D6AE7C;
+  --mgr-nav-bg: #14161A;
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-theme-resolved="dark"] .manager-body,
+  html[data-theme-resolved="dark"] .manager-body * {
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+}
+
+html[data-theme-resolved="dark"] .manager-body { background: var(--mgr-bg); color: var(--mgr-text); }
+
+/* ---- sidebar ------------------------------------------------------- */
+html[data-theme-resolved="dark"] .manager-nav { background: var(--mgr-nav-bg); border-right-color: var(--mgr-border); border-left-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-nav-brand,
+html[data-theme-resolved="dark"] .manager-nav-profile-name { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-nav-profile-email { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-nav-toggle:hover { background: var(--mgr-surface-raised); }
+html[data-theme-resolved="dark"] .manager-nav-toggle-line { background: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-nav-avatar-img { border-color: var(--mgr-border); background: var(--mgr-surface); }
+html[data-theme-resolved="dark"] .manager-nav-link { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-nav-link:hover { background: var(--mgr-surface-raised); color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-nav-link.is-active { background: var(--mgr-accent); color: var(--mgr-accent-contrast); }
+html[data-theme-resolved="dark"] .manager-nav-link.is-active .manager-nav-icon { color: inherit; }
+html[data-theme-resolved="dark"] .manager-nav-icon { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-nav-foot { border-top-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-nav-link--logout:hover { background: rgba(225, 114, 99, 0.14); color: var(--mgr-danger); }
+
+/* ---- mobile hamburger bar --------------------------------------------- */
+html[data-theme-resolved="dark"] .manager-mobile-bar {
+  background: var(--mgr-nav-bg);
+  border-bottom-color: var(--mgr-border);
+}
+html[data-theme-resolved="dark"] .manager-mobile-bar-brand { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-mobile-nav-toggle span { background: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-nav-backdrop { background: rgba(0, 0, 0, 0.6); }
+
+/* ---- surfaces: panels, stat tiles (dashboard/orders/products) --------- */
+html[data-theme-resolved="dark"] .manager-panel,
+html[data-theme-resolved="dark"] .manager-stat-card,
+html[data-theme-resolved="dark"] .manager-order-feed-item {
+  background: var(--mgr-surface);
+  border-color: var(--mgr-border);
+  box-shadow: none;
+}
+html[data-theme-resolved="dark"] .manager-main-header h1,
+html[data-theme-resolved="dark"] .manager-panel h2,
+html[data-theme-resolved="dark"] .manager-settings-section-head h2,
+html[data-theme-resolved="dark"] .manager-stat-value,
+html[data-theme-resolved="dark"] .manager-deflist dd { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-muted,
+html[data-theme-resolved="dark"] .manager-empty,
+html[data-theme-resolved="dark"] .manager-stat-label,
+html[data-theme-resolved="dark"] .manager-deflist dt { color: var(--mgr-text-muted); }
+
+/* ---- settings tabs ----------------------------------------------------- */
+html[data-theme-resolved="dark"] .manager-settings-tabs { border-bottom-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-settings-tab { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-settings-tab:hover { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-settings-tab.is-active { color: var(--mgr-text); border-bottom-color: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .manager-settings-tab:focus-visible { outline-color: var(--mgr-accent); }
+
+/* ---- tables ---------------------------------------------------------- */
+html[data-theme-resolved="dark"] .manager-table th { color: var(--mgr-text-muted); border-bottom-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-table td { color: var(--mgr-text); border-bottom-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-table tfoot td { border-top-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-table tbody tr:hover { background: var(--mgr-surface-raised); }
+
+/* ---- thumbnail column pinned during horizontal scroll (mobile) -------- */
+@media (max-width: 700px) {
+  html[data-theme-resolved="dark"] .manager-table-wrap .manager-table td:first-child {
+    background: var(--mgr-surface);
+  }
+  html[data-theme-resolved="dark"] .manager-table-wrap .manager-table tbody tr[data-href]:hover td:first-child {
+    background: var(--mgr-surface-raised);
+  }
+}
+
+/* ---- inputs ------------------------------------------------------------ */
+html[data-theme-resolved="dark"] .manager-search input,
+html[data-theme-resolved="dark"] .manager-status-form select,
+html[data-theme-resolved="dark"] .manager-field input,
+html[data-theme-resolved="dark"] .manager-field select,
+html[data-theme-resolved="dark"] .manager-field textarea,
+html[data-theme-resolved="dark"] input[type="text"],
+html[data-theme-resolved="dark"] input[type="email"],
+html[data-theme-resolved="dark"] input[type="password"],
+html[data-theme-resolved="dark"] textarea,
+html[data-theme-resolved="dark"] select {
+  background: var(--mgr-surface-raised);
+  border-color: var(--mgr-border);
+  color: var(--mgr-text);
+}
+html[data-theme-resolved="dark"] input::placeholder,
+html[data-theme-resolved="dark"] textarea::placeholder { color: var(--mgr-text-muted); }
+
+/* ---- buttons --------------------------------------------------------- */
+html[data-theme-resolved="dark"] .btn { background: var(--mgr-accent); border-color: var(--mgr-accent); color: var(--mgr-accent-contrast); }
+html[data-theme-resolved="dark"] .btn:hover { background: var(--mgr-text); border-color: var(--mgr-text); color: var(--mgr-bg); }
+html[data-theme-resolved="dark"] .btn-outline { color: var(--mgr-text); border-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .btn-outline:hover { background: var(--mgr-surface-raised); color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-link,
+html[data-theme-resolved="dark"] .manager-link-btn { color: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .manager-link-btn--danger { color: var(--mgr-danger); }
+
+/* ---- inline search button ------------------------------------------ */
+html[data-theme-resolved="dark"] .manager-search-btn { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-search-btn:hover { background: var(--mgr-surface-raised); color: var(--mgr-text); }
+
+/* ---- toolbar filter select --------------------------------------------- */
+html[data-theme-resolved="dark"] .manager-filter-select-nav {
+  background-color: var(--mgr-surface-raised);
+  border-color: var(--mgr-border);
+  color: var(--mgr-text);
+}
+
+/* ---- icon-only row action buttons/links -------------------------------- */
+html[data-theme-resolved="dark"] .manager-icon-link,
+html[data-theme-resolved="dark"] .manager-icon-btn {
+  background: var(--mgr-surface-raised);
+  border-color: var(--mgr-border);
+  color: var(--mgr-text-muted);
+}
+html[data-theme-resolved="dark"] .manager-icon-link:hover,
+html[data-theme-resolved="dark"] .manager-icon-btn:hover {
+  background: var(--mgr-surface);
+  border-color: var(--mgr-accent);
+  color: var(--mgr-text);
+}
+html[data-theme-resolved="dark"] .manager-icon-btn--on { color: var(--mgr-success); border-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-icon-btn--on:hover { background: rgba(121, 179, 102, 0.14); border-color: var(--mgr-success); color: var(--mgr-success); }
+html[data-theme-resolved="dark"] .manager-icon-btn--off:hover { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-icon-btn--danger { color: var(--mgr-danger); }
+html[data-theme-resolved="dark"] .manager-icon-btn--danger:hover { background: rgba(225, 114, 99, 0.14); border-color: var(--mgr-danger); color: var(--mgr-danger); }
+
+/* ---- pills / badges / status chips ------------------------------------ */
+html[data-theme-resolved="dark"] .manager-pill { border-color: var(--mgr-border); color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-pill.is-active { background: var(--mgr-accent); color: var(--mgr-accent-contrast); border-color: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .manager-badge--active { background: rgba(121, 179, 102, 0.16); color: var(--mgr-success); }
+html[data-theme-resolved="dark"] .manager-badge--inactive { background: rgba(225, 114, 99, 0.16); color: var(--mgr-danger); }
+html[data-theme-resolved="dark"] .order-status--pending { background: rgba(214, 174, 124, 0.18); color: var(--mgr-warning); }
+html[data-theme-resolved="dark"] .order-status--completed { background: rgba(121, 179, 102, 0.16); color: var(--mgr-success); }
+html[data-theme-resolved="dark"] .order-status--failed { background: rgba(225, 114, 99, 0.16); color: var(--mgr-danger); }
+
+/* ---- misc chrome ------------------------------------------------------- */
+html[data-theme-resolved="dark"] .manager-thumb--empty { background: var(--mgr-surface-raised); border-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-message--success { background: rgba(121, 179, 102, 0.16); color: var(--mgr-success); }
+html[data-theme-resolved="dark"] .manager-message--error { background: rgba(225, 114, 99, 0.16); color: var(--mgr-danger); }
+html[data-theme-resolved="dark"] .manager-message--info,
+html[data-theme-resolved="dark"] .manager-message--warning { background: rgba(214, 174, 124, 0.18); color: var(--mgr-warning); }
+html[data-theme-resolved="dark"] .manager-pagination-link { color: var(--mgr-text); border-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-pagination-link.is-current { background: var(--mgr-accent); color: var(--mgr-accent-contrast); border-color: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .manager-pagination-link.is-disabled,
+html[data-theme-resolved="dark"] .manager-pagination-count,
+html[data-theme-resolved="dark"] .manager-pagination-ellipsis { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-simple-list { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-colour-dot { border-color: rgba(255, 255, 255, 0.25); }
+
+
+/* ==========================================================================
+   Settings page — flat layout, no card boxes.
+
+   This is a brand-new layout (nothing in style.css styled .manager-card /
+   .manager-field before), designed deliberately without the boxed-panel
+   look used on Dashboard/Orders/Products: each section is a plain block
+   separated by a hairline, in a single readable column - closer to a
+   typical account-settings page than a dashboard widget grid.
+   ========================================================================== */
+
+.manager-settings { max-width: 100%; margin-left: 20px; margin-right: auto; }
+
+/* ---- tabs ---------------------------------------------------------------
+   One section visible at a time instead of one long scroll. Underline-
+   style tabs, consistent with the flat (no card-box) feel of this page. */
+.manager-settings-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+.manager-settings-tab {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 12px 16px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.manager-settings-tab:hover { color: var(--ink); }
+.manager-settings-tab.is-active { color: var(--ink); border-bottom-color: var(--bramble); font-weight: 600; }
+.manager-settings-tab:focus-visible { outline: 2px solid var(--bramble); outline-offset: 2px; }
+
+.manager-settings-panel[hidden] { display: none; }
+
+.manager-settings-section-head { margin-bottom: 20px; }
+.manager-settings-section-head h2 { font-size: 17px; margin: 0 0 4px; }
+.manager-settings-section-head p { margin: 0; }
+
+.manager-settings-form { display: flex; flex-direction: column; gap: 16px;  width: 640px;}
+
+.manager-field { display: flex; flex-direction: column; gap: 6px; }
+.manager-field label { font-size: 13px; font-weight: 500; color: var(--ink-soft); }
+.manager-field input[type="text"],
+.manager-field input[type="email"],
+.manager-field input[type="password"] {
+  padding: 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  font: inherit;
+  background: var(--white);
+  color: var(--ink);
+}
+.manager-field input:focus { outline: none; border-color: var(--bramble); }
+
+/* ---- avatar row --------------------------------------------------------- */
+.manager-settings-avatar-row { display: flex; align-items: center; gap: 16px; }
+.manager-settings-avatar-row .manager-thumb { width: 56px; height: 56px; border-radius: 50%; }
+.manager-settings-avatar-row input[type="file"] { font-size: 13px; }
+
+/* ---- toggle switch — notifications + the sidebar quick toggle -------- */
+.mgr-switch-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.mgr-switch-row:last-child { border-bottom: none; padding-bottom: 0; }
+.mgr-switch-row:first-child { padding-top: 0; }
+.mgr-switch-row-label { font-weight: 500; color: var(--ink); font-size: 14px; }
+.mgr-switch-row-help { font-size: 13px; color: var(--stone); margin-top: 2px; }
+
+.mgr-switch { position: relative; display: inline-flex; flex-shrink: 0; width: 42px; height: 24px; margin-top: 2px; }
+.mgr-switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.mgr-switch-track { position: absolute; inset: 0; background: var(--hairline); border-radius: 999px; transition: background-color 0.15s ease; }
+.mgr-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease;
+}
+.mgr-switch input:checked + .mgr-switch-track { background: var(--bramble); }
+.mgr-switch input:checked + .mgr-switch-track::after { transform: translateX(18px); }
+.mgr-switch input:focus-visible + .mgr-switch-track { outline: 2px solid var(--bramble); outline-offset: 2px; }
+.mgr-switch input:disabled + .mgr-switch-track { opacity: 0.5; cursor: not-allowed; }
+
+html[data-theme-resolved="dark"] .mgr-switch-row { border-bottom-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .mgr-switch-row-label { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .mgr-switch-row-help { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .mgr-switch-track { background: var(--mgr-border); }
+html[data-theme-resolved="dark"] .mgr-switch-track::after { background: var(--mgr-surface); }
+html[data-theme-resolved="dark"] .mgr-switch input:checked + .mgr-switch-track { background: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .mgr-switch input:focus-visible + .mgr-switch-track { outline-color: var(--mgr-accent); }
+
+/* ---- segmented control (theme picker) ---------------------------------- */
+.mgr-segmented {
+  display: inline-flex;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 3px;
+  background: var(--ivory);
+  gap: 2px;
+}
+.mgr-segmented input { position: absolute; opacity: 0; width: 0; height: 0; }
+.mgr-segmented label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  user-select: none;
+}
+.mgr-segmented input:checked + label { background: var(--white); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.mgr-segmented input:focus-visible + label { outline: 2px solid var(--bramble); outline-offset: 2px; }
+.mgr-segmented svg { width: 16px; height: 16px; }
+
+html[data-theme-resolved="dark"] .mgr-segmented { background: var(--mgr-bg); border-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .mgr-segmented label { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .mgr-segmented input:checked + label { background: var(--mgr-surface-raised); color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .mgr-segmented input:focus-visible + label { outline-color: var(--mgr-accent); }
+
+/* ---- sidebar quick theme toggle -----------------------------------------
+   Reuses .manager-nav-link for identical light/dark/hover/active colors
+   to every other sidebar entry - this just adds the small outline so it
+   still reads as a control rather than a nav destination. */
+.manager-nav-theme-toggle { border: 1px solid var(--hairline); margin-bottom: 4px; }
+html[data-theme-resolved="dark"] .manager-nav-theme-toggle { border-color: var(--mgr-border); }
+
+/* Three icons ship in the button; only the one matching the current
+   preference is shown, purely via CSS - no icon-swap JS needed. */
+.manager-nav-theme-toggle-icon-light,
+.manager-nav-theme-toggle-icon-dark,
+.manager-nav-theme-toggle-icon-system { display: none; }
+html[data-theme="light"] .manager-nav-theme-toggle-icon-light,
+html[data-theme="dark"] .manager-nav-theme-toggle-icon-dark,
+html[data-theme="system"] .manager-nav-theme-toggle-icon-system { display: block; }
+/* ==========================================================================
+   Dark mode — Reports page, additive overrides only
+   ========================================================================== */
+
+html[data-theme-resolved="dark"] .manager-range-btn {
+  background: var(--mgr-surface); border-color: var(--mgr-border); color: var(--mgr-text);
+}
+html[data-theme-resolved="dark"] .manager-range-btn:hover { background: var(--mgr-surface-raised); border-color: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .manager-range-label { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-range-compare,
+html[data-theme-resolved="dark"] .manager-kpi-compare { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-range-today { color: var(--mgr-accent); }
+
+html[data-theme-resolved="dark"] .manager-btn-outline {
+  border-color: var(--mgr-border); color: var(--mgr-text);
+}
+html[data-theme-resolved="dark"] .manager-btn-outline:hover {
+  background: var(--mgr-accent); color: var(--mgr-accent-contrast); border-color: var(--mgr-accent);
+}
+
+html[data-theme-resolved="dark"] .manager-custom-form-field label { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-custom-form input[type="date"] {
+  background: var(--mgr-surface); border-color: var(--mgr-border); color: var(--mgr-text);
+  color-scheme: dark;
+}
+html[data-theme-resolved="dark"] .manager-custom-form input[type="date"]:focus { border-color: var(--mgr-accent); }
+
+html[data-theme-resolved="dark"] .manager-kpi-delta--up { color: var(--mgr-success); }
+html[data-theme-resolved="dark"] .manager-kpi-delta--down { color: var(--mgr-danger); }
+html[data-theme-resolved="dark"] .manager-kpi-delta--flat { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-kpi-delta--new { color: var(--mgr-accent); }
+
+html[data-theme-resolved="dark"] .manager-category-row { border-bottom-color: var(--mgr-border); }
+html[data-theme-resolved="dark"] .manager-category-name { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-category-bar-track { background: var(--mgr-surface-raised); }
+html[data-theme-resolved="dark"] .manager-category-bar-fill { background: var(--mgr-accent); }
+html[data-theme-resolved="dark"] .manager-category-amount { color: var(--mgr-text); }
+
+html[data-theme-resolved="dark"] .manager-delivery-stat { border-color: var(--mgr-border); background: var(--mgr-surface); }
+html[data-theme-resolved="dark"] .manager-delivery-stat-value { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-delivery-stat-label { color: var(--mgr-text-muted); }
+
+/* ---- download dropdown (Export CSV / PDF) ------------------------------ */
+html[data-theme-resolved="dark"] .manager-download-menu {
+  background: var(--mgr-surface-raised);
+  border-color: var(--mgr-border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+html[data-theme-resolved="dark"] .manager-download-menu a { color: var(--mgr-text); }
+html[data-theme-resolved="dark"] .manager-download-menu a:hover { background: var(--mgr-surface); }
+html[data-theme-resolved="dark"] .manager-download-menu svg { color: var(--mgr-text-muted); }
+html[data-theme-resolved="dark"] .manager-download-menu span small { color: var(--mgr-text-muted); }

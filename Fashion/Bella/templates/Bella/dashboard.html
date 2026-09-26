@@ -1,0 +1,222 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Manager Dashboard — Etsirbella Designs{% endblock %}
+{% block manager_title %}Dashboard{% endblock %}
+{% block body_class %}manager-body--dashboard{% endblock %}
+
+{% block manager_content %}
+<div class="manager-stat-grid">
+  <a href="{% url 'manager_order_list' %}" class="manager-stat-card manager-stat-card--blue manager-stat-card--link">
+    <div class="manager-stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </div>
+    <div>
+      <div class="manager-stat-label">Total Orders</div>
+      <div class="manager-stat-value">{{ total_orders }}</div>
+    </div>
+  </a>
+
+  <a href="{% url 'manager_reports' %}" class="manager-stat-card manager-stat-card--pink manager-stat-card--link">
+    <div class="manager-stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/>
+      </svg>
+    </div>
+    <div>
+      <div class="manager-stat-label">Total Revenue</div>
+      <div class="manager-stat-value">KES {{ revenue|floatformat:0 }}</div>
+    </div>
+  </a>
+
+  <div class="manager-stat-card manager-stat-card--yellow">
+    <div class="manager-stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0 1 14 0v1"/><circle cx="18" cy="8" r="3"/><path d="M22 21v-1a5.5 5.5 0 0 0-4-5.3"/>
+      </svg>
+    </div>
+    <div>
+      <div class="manager-stat-label">Total Customers</div>
+      <div class="manager-stat-value">{{ total_customers }}</div>
+    </div>
+  </div>
+
+  <a href="{% url 'manager_product_list' %}" class="manager-stat-card manager-stat-card--orange manager-stat-card--link">
+    <div class="manager-stat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>
+      </svg>
+    </div>
+    <div>
+      <div class="manager-stat-label">Total Products</div>
+      <div class="manager-stat-value">{{ product_counts.active }} <span class="manager-stat-sub">/ {{ product_counts.total }}</span></div>
+    </div>
+  </a>
+</div>
+
+<div class="manager-dash-flow">
+  <div class="manager-dash-scroll">
+    <div class="manager-panel manager-panel--chart manager-dash-panel--sales">
+      <div class="manager-panel-head">
+        <h2>Sales Overview</h2>
+        <a href="{% url 'manager_reports' %}" class="manager-link">View Report</a>
+      </div>
+      <div class="manager-chart-wrap">
+        <canvas id="salesChart"></canvas>
+      </div>
+    </div>
+
+    <div class="manager-panel manager-dash-panel--recent">
+      <div class="manager-panel-head">
+        <h2>Recent Orders</h2>
+        <a href="{% url 'manager_order_list' %}" class="manager-link">View All</a>
+      </div>
+
+      {% if recent_orders %}
+        <div class="manager-order-feed">
+          {% for order in recent_orders %}
+            {% with first_item=order.items.all.0 %}
+              <a href="{% url 'manager_order_detail' order.order_reference %}" class="manager-order-feed-item">
+                {% if first_item.product.image %}
+                  <img src="{{ first_item.product.image.url }}" alt="" class="manager-thumb">
+                {% else %}
+                  <span class="manager-thumb manager-thumb--empty"></span>
+                {% endif %}
+                <div>
+                  <div class="manager-order-feed-ref">#{{ order.order_reference }}</div>
+                  <div class="manager-order-feed-name">{{ order.name }}</div>
+                </div>
+                <span class="order-status order-status--{{ order.status|lower }}">{{ order.status }}</span>
+              </a>
+            {% endwith %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="manager-empty">No orders yet.</p>
+      {% endif %}
+    </div>
+
+    <div class="manager-panel manager-dash-panel--status">
+      <h2>Orders by Status</h2>
+      <div class="manager-chart-wrap">
+        <canvas id="statusChart"></canvas>
+      </div>
+      <p class="manager-chart-hint">Click a slice to view those orders</p>
+    </div>
+  </div>
+
+  <div class="manager-panel manager-dash-panel--most-ordered">
+    <div class="manager-panel-head">
+      <h2>Most Ordered Products</h2>
+      <a href="{% url 'manager_product_list' %}" class="manager-link">View All</a>
+    </div>
+
+    {% if most_ordered_products %}
+      <div class="manager-table-wrap">
+      <table class="manager-table">
+        <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+        <tbody>
+          {% for row in most_ordered_products %}
+            <tr data-href="{% url 'manager_product_edit' row.product.pk %}" tabindex="0">
+              <td class="manager-table-product">
+                {% if row.product.image %}
+                  <img src="{{ row.product.image.url }}" alt="" class="manager-thumb">
+                {% else %}
+                  <span class="manager-thumb manager-thumb--empty"></span>
+                {% endif %}
+                {{ row.product.name }}
+              </td>
+              <td>{{ row.units_sold }}</td>
+              <td>KES {{ row.revenue|floatformat:0 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      </div>
+    {% else %}
+      <p class="manager-empty">No orders yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+{{ sales_overview|json_script:"salesOverviewData" }}
+{{ order_counts|json_script:"orderStatusData" }}
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+(function () {
+  "use strict";
+
+  var salesData = JSON.parse(document.getElementById("salesOverviewData").textContent);
+  var statusData = JSON.parse(document.getElementById("orderStatusData").textContent);
+  var reportsUrl = "{% url 'manager_reports' %}";
+  var orderListUrl = "{% url 'manager_order_list' %}";
+
+  if (!window.Chart) {
+    console.warn(
+      "Chart.js didn't load - check that Bella/js/chart.umd.min.js exists in your " +
+      "static files and that STATIC_URL is configured (run collectstatic if needed)."
+    );
+    return;
+  }
+
+  var salesCanvas = document.getElementById("salesChart");
+  if (salesCanvas && window.Chart) {
+    new Chart(salesCanvas, {
+      type: "line",
+      data: {
+        labels: salesData.map(function (d) { return d.label; }),
+        datasets: [{
+          label: "Revenue (KES)",
+          data: salesData.map(function (d) { return d.value; }),
+          borderColor: "#0F80C4",
+          backgroundColor: "rgba(15, 128, 196, 0.12)",
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+          pointBackgroundColor: "#0F80C4",
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        onClick: function () { window.location.href = reportsUrl; },
+        onHover: function (evt, elements) { evt.native.target.style.cursor = "pointer"; },
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { callback: function (v) { return v >= 1000 ? (v / 1000) + "k" : v; } } } },
+      },
+    });
+  }
+
+  var statusCanvas = document.getElementById("statusChart");
+  if (statusCanvas && window.Chart) {
+    new Chart(statusCanvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Pending", "Completed", "Failed"],
+        datasets: [{
+          data: [statusData.pending, statusData.completed, statusData.failed],
+          backgroundColor: ["#B8935A", "#3E6B2E", "#C0392B"],
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutout: "65%",
+        onClick: function (evt, elements) {
+          if (!elements.length) return;
+          var label = ["Pending", "Completed", "Failed"][elements[0].index];
+          window.location.href = orderListUrl + "?status=" + encodeURIComponent(label);
+        },
+        onHover: function (evt, elements) {
+          evt.native.target.style.cursor = elements.length ? "pointer" : "default";
+        },
+        plugins: { legend: { position: "right", align: "center", labels: { boxWidth: 15, padding: 14 } } },
+      },
+    });
+  }
+})();
+</script>
+{% endblock %}

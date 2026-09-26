@@ -1,0 +1,90 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Products — Manager{% endblock %}
+{% block manager_title %}Products{% endblock %}
+{% block manager_actions %}<a href="{% url 'manager_product_create' %}" class="btn">+ Add Product</a>{% endblock %}
+
+{% block manager_content %}
+<div class="manager-toolbar manager-toolbar--row">
+  <form method="get" class="manager-search manager-search-inline">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search products">
+    {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+    <button type="submit" class="manager-search-btn" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    </button>
+  </form>
+
+  <div class="manager-filter-select">
+    <label for="productCategoryFilter" class="manager-visually-hidden">Filter by category</label>
+    <select id="productCategoryFilter" class="manager-filter-select-nav" onchange="if (this.value) window.location.href = this.value;">
+      <option value="{% url 'manager_product_list' %}{% if query %}?q={{ query }}{% endif %}"{% if not active_category %} selected{% endif %}>All Categories</option>
+      {% for category in categories %}
+        <option value="?category={{ category.slug }}{% if query %}&q={{ query }}{% endif %}"{% if active_category == category.slug %} selected{% endif %}>{{ category.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
+{% if products %}
+  <div class="manager-table-wrap">
+  <table class="manager-table manager-table--products">
+    <thead>
+      <tr><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+        <tr data-href="{% url 'manager_product_edit' product.pk %}" tabindex="0">
+          <td>
+            <div class="manager-product-name-cell">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="" class="manager-thumb">
+              {% else %}
+                <span class="manager-thumb manager-thumb--empty"></span>
+              {% endif %}
+              <span class="manager-product-name">{{ product.name }}</span>
+            </div>
+          </td>
+          <td>{{ product.category.name|default:"—" }}</td>
+          <td>
+            KES {{ product.price|floatformat:0 }}
+            {% if product.variants.count %}<span class="manager-muted">({{ product.variants.count }} variants)</span>{% endif %}
+            {% if product.colours.all %}
+              <div class="manager-colour-dots">
+                {% for colour in product.colours.all %}
+                  <span class="manager-colour-dot" style="background: {{ colour.hex_code }};" title="{{ colour.name }}"></span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            <span class="manager-badge manager-badge--{% if product.is_active %}active{% else %}inactive{% endif %}">
+              {% if product.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+          </td>
+          <td class="manager-row-actions">
+            <a href="{% url 'manager_product_edit' product.pk %}" class="manager-icon-link" aria-label="Edit {{ product.name }}" title="Edit">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            </a>
+            <form method="post" action="{% url 'manager_product_toggle_active' product.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="manager-icon-btn {% if product.is_active %}manager-icon-btn--on{% else %}manager-icon-btn--off{% endif %}" aria-label="{% if product.is_active %}Deactivate{% else %}Activate{% endif %} {{ product.name }}" title="{% if product.is_active %}Deactivate{% else %}Activate{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+              </button>
+            </form>
+            <form method="post" action="{% url 'manager_product_delete' product.pk %}" onsubmit="return confirm('Delete {{ product.name|escapejs }}? This can\'t be undone.');">
+              {% csrf_token %}
+              <button type="submit" class="manager-icon-btn manager-icon-btn--danger" aria-label="Delete {{ product.name }}" title="Delete">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              </button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% include "Bella/_manager_pagination.html" %}
+{% else %}
+  <p class="manager-empty">No products yet. <a href="{% url 'manager_product_create' %}">Add your first product</a>.</p>
+{% endif %}
+{% endblock %}

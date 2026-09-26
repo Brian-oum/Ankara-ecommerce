@@ -33,6 +33,17 @@
                     <div>
                       <a href="{% url 'product_detail' item.product.slug %}" class="cart-item-name">{{ item.product.name }}</a>
                       {% if item.variant %}<div class="cart-item-variant" style="color: var(--stone); font-size: 13px;">{{ item.variant.name }}</div>{% endif %}
+                      {% if item.colour %}
+                        <div class="cart-item-colour" style="color: var(--stone); font-size: 13px; display: flex; align-items: center; gap: 5px; margin-top: 2px;">
+                          <span style="width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--hairline); display: inline-block; background: {{ item.colour.hex_code }};"></span>
+                          {{ item.colour.name }}
+                        </div>
+                      {% endif %}
+                      {% if item.custom_request %}
+                        <div class="cart-item-custom-request" style="color: var(--stone); font-size: 13px; margin-top: 2px;">
+                          <strong style="color: var(--ink-soft);">Custom request:</strong> {{ item.custom_request }}
+                        </div>
+                      {% endif %}
                     </div>
                   </div>
                 </td>
@@ -42,6 +53,8 @@
                     <form method="post" action="{% url 'cart_update' item.product.id %}" class="cart-qty-form">
                       {% csrf_token %}
                       {% if item.variant %}<input type="hidden" name="variant_id" value="{{ item.variant.id }}">{% endif %}
+                      {% if item.colour %}<input type="hidden" name="colour_id" value="{{ item.colour.id }}">{% endif %}
+                      {% if item.custom_request %}<input type="hidden" name="custom_request" value="{{ item.custom_request }}">{% endif %}
                       <input class="qty-input" type="number" name="quantity" value="{{ item.quantity }}" min="1" aria-label="Quantity for {{ item.product.name }}">
                       <button type="submit" class="cart-icon-btn" aria-label="Update quantity" title="Update quantity">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
@@ -50,18 +63,20 @@
                     <form method="post" action="{% url 'cart_remove' item.product.id %}" class="cart-remove-form">
                       {% csrf_token %}
                       {% if item.variant %}<input type="hidden" name="variant_id" value="{{ item.variant.id }}">{% endif %}
+                      {% if item.colour %}<input type="hidden" name="colour_id" value="{{ item.colour.id }}">{% endif %}
+                      {% if item.custom_request %}<input type="hidden" name="custom_request" value="{{ item.custom_request }}">{% endif %}
                       <button type="submit" class="cart-icon-btn cart-icon-btn--remove" aria-label="Remove {{ item.product.name }}" title="Remove item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                       </button>
                     </form>
                   </div>
                 </td>
-                <td data-label="Subtotal">KES {{ item.subtotal }}</td>
+                <td data-label="Subtotal">KES {{ item.subtotal }} (Exc. VAT)</td>
               </tr>
             {% endfor %}
             <tr class="cart-total-row">
               <td colspan="2">Total</td>
-              <td colspan="2">KES {{ cart.get_total_price }}</td>
+              <td colspan="2">KES {{ cart.get_total_price }} (Exc. VAT)</td>
             </tr>
           </tbody>
         </table>

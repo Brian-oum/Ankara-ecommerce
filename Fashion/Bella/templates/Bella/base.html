@@ -48,7 +48,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="{% static 'images/favicon-192.png' %}">
 <link rel="icon" type="image/png" sizes="512x512" href="{% static 'images/favicon-512.png' %}">
 <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon-180.png' %}">
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
 
@@ -283,7 +283,7 @@
 
     <div class="side-drawer-footer" id="cartDrawerFooter" hidden>
       <div class="side-drawer-subtotal">
-        <span>Subtotal</span>
+        <span>Subtotal (Exc. VAT)</span>
         <span id="cartDrawerTotal">KSh 0.00</span>
       </div>
       <a href="{% url 'cart_detail' %}" class="btn btn-outline side-drawer-action">View Bag</a>
@@ -711,9 +711,7 @@
                 '<div class="side-drawer-item-meta">' + money(item.price) + '</div>' +
               '</div>' +
               '<div class="side-drawer-item-side">' +
-                (item.in_stock
-                  ? '<button type="button" class="side-drawer-item-move">Move to Bag</button>'
-                  : '<span class="side-drawer-item-meta">Out of stock</span>') +
+                '<button type="button" class="side-drawer-item-move">Move to Bag</button>' +
                 '<button type="button" class="side-drawer-item-remove" aria-label="Remove ' + escapeHtml(item.name) + '"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
               '</div>' +
             '</div>'

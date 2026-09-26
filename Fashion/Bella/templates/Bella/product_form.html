@@ -1,0 +1,579 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}{% if is_new %}Add Product{% else %}Edit {{ product.name }}{% endif %} — Manager{% endblock %}
+{% block manager_title %}{% if is_new %}Add Product{% else %}Edit Product{% endif %}{% endblock %}
+
+{% block manager_content %}
+<form method="post" enctype="multipart/form-data" class="manager-form" id="productForm">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="form-errors">{% for error in form.non_field_errors %}{{ error }}{% endfor %}</div>
+  {% endif %}
+
+  <div class="manager-panel">
+    <h2>Product Details</h2>
+    <div class="manager-form-grid">
+      <div class="field">
+        <label for="{{ form.name.id_for_label }}">Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="field-errors">{{ form.name.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="field">
+        <label for="{{ form.category.id_for_label }}">Category</label>
+        {{ form.category }}
+        {% if form.category.errors %}<div class="field-errors">{{ form.category.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="field">
+        <label for="{{ form.price.id_for_label }}">Base price (KES)</label>
+        {{ form.price }}
+        <p class="manager-hint">{{ form.price.help_text }}</p>
+        {% if form.price.errors %}<div class="field-errors">{{ form.price.errors.0 }}</div>{% endif %}
+
+        <div class="colour-picker-trigger">
+          <button type="button" id="openColourModalBtn" class="btn btn-outline btn-small">
+            <span id="colourSwatchPreview" class="colour-swatch-preview"></span>
+            Choose colours
+          </button>
+          <div id="colourChipList" class="colour-chip-list"></div>
+        </div>
+        {% if colour_formset.non_form_errors %}
+          <div class="form-errors">{% for error in colour_formset.non_form_errors %}{{ error }}{% endfor %}</div>
+        {% endif %}
+      </div>
+      <div class="field">
+        <label for="{{ form.image.id_for_label }}">Photo</label>
+        {% if product and product.image %}
+          <div class="manager-current-image-wrap" id="productImageWrap">
+            <img src="{{ product.image.url }}" alt="" class="manager-current-image">
+            <button type="button" id="removeImageBtn" class="btn-icon-delete" title="Remove photo" aria-label="Remove photo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            </button>
+            <input type="checkbox" name="{{ form.image.html_name }}-clear" id="{{ form.image.html_name }}-clear_id" class="visually-hidden">
+          </div>
+        {% endif %}
+        <input type="file" name="{{ form.image.html_name }}" id="{{ form.image.id_for_label }}" accept="image/*">
+        {% if form.image.errors %}<div class="field-errors">{{ form.image.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="field manager-field-checkbox">
+        {{ form.is_active }}
+        <label for="{{ form.is_active.id_for_label }}">Active (visible on the storefront)</label>
+      </div>
+      <div class="field manager-field-span2">
+        <label for="{{ form.description.id_for_label }}">Description</label>
+        {{ form.description }}
+        {% if form.description.errors %}<div class="field-errors">{{ form.description.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="manager-panel">
+    <h2>Variants <span class="manager-hint">(leave empty for a simple, single-price product)</span></h2>
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+      <div class="form-errors">{% for error in formset.non_form_errors %}{{ error }}{% endfor %}</div>
+    {% endif %}
+
+    <div id="variantRows">
+      {% for vform in formset %}
+        <div class="manager-variant-row">
+          {% for hidden in vform.hidden_fields %}{{ hidden }}{% endfor %}
+          <div class="field">
+            <label>Name</label>
+            {{ vform.name }}
+          </div>
+          <div class="field">
+            <label>Price (KES)</label>
+            {{ vform.price }}
+          </div>
+          <div class="field manager-field-checkbox">
+            {{ vform.is_default }}
+            <label>Default</label>
+          </div>
+          <div class="field">
+            <label>Order</label>
+            {{ vform.sort_order }}
+          </div>
+          {% if vform.instance.pk %}
+            <div class="field manager-field-delete">
+              {{ vform.DELETE }}
+              <button type="button" class="btn-icon-delete" data-role="delete-variant" title="Remove variant" aria-label="Remove variant">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            </div>
+          {% else %}
+            <div class="field manager-field-delete">
+              <button type="button" class="btn-icon-delete" data-role="delete-new-variant" title="Remove variant" aria-label="Remove variant">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            </div>
+          {% endif %}
+          {% if vform.errors %}<div class="field-errors">{{ vform.errors }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="button" id="addVariantBtn" class="btn btn-outline">+ Add another variant</button>
+  </div>
+
+  <div id="colourFormsetRows" class="visually-hidden">
+    {{ colour_formset.management_form }}
+    {% for cform in colour_formset %}
+      <div class="colour-formset-row" data-form-index="{{ forloop.counter0 }}">
+        {% for hidden in cform.hidden_fields %}{{ hidden }}{% endfor %}
+        {% if cform.instance.pk %}{{ cform.DELETE }}{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="manager-form-actions">
+    <button type="submit" class="btn">{% if is_new %}Add Product{% else %}Save Changes{% endif %}</button>
+    <a href="{% url 'manager_product_list' %}" class="btn btn-outline">Cancel</a>
+  </div>
+</form>
+
+<div id="colourModal" class="colour-modal-overlay">
+  <div class="colour-modal" role="dialog" aria-modal="true" aria-labelledby="colourModalTitle">
+    <div class="colour-modal-head">
+      <h3 id="colourModalTitle">Choose a colour</h3>
+      <button type="button" id="closeColourModalBtn" class="colour-modal-close" aria-label="Close">&times;</button>
+    </div>
+
+    <div class="colour-modal-body">
+      <div class="colour-swatch-grid" id="colourSwatchGrid">
+        <button type="button" class="colour-swatch-btn" data-hex="#000000" data-name="Black" title="Black"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#FFFFFF" data-name="White" title="White"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#808080" data-name="Grey" title="Grey"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#36454F" data-name="Charcoal" title="Charcoal"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#C0C0C0" data-name="Silver" title="Silver"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#6F4E37" data-name="Brown" title="Brown"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#A0522D" data-name="Auburn" title="Auburn"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#C68642" data-name="Honey Blonde" title="Honey Blonde"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#F1C27D" data-name="Blonde" title="Blonde"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#D9C4A3" data-name="Beige" title="Beige"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#FFFFF0" data-name="Ivory" title="Ivory"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#6D071A" data-name="Burgundy" title="Burgundy"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#800000" data-name="Maroon" title="Maroon"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#E53935" data-name="Red" title="Red"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#EF6C00" data-name="Orange" title="Orange"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#FBC02D" data-name="Yellow" title="Yellow"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#2E7D32" data-name="Green" title="Green"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#556B2F" data-name="Olive" title="Olive"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#00796B" data-name="Teal" title="Teal"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#1565C0" data-name="Blue" title="Blue"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#1B1F3B" data-name="Navy" title="Navy"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#6A1B9A" data-name="Purple" title="Purple"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#EC407A" data-name="Pink" title="Pink"></button>
+        <button type="button" class="colour-swatch-btn" data-hex="#D4AF37" data-name="Gold" title="Gold"></button>
+      </div>
+
+      <div class="colour-modal-hex-row">
+        <span id="colourModalPreviewDot" class="colour-modal-preview-dot"></span>
+        <div class="field">
+          <label for="colourModalNameInput">Name</label>
+          <input type="text" id="colourModalNameInput" placeholder="e.g. Honey Blonde">
+        </div>
+        <div class="field">
+          <label for="colourModalHexInput">Hex code</label>
+          <input type="text" id="colourModalHexInput" placeholder="#000000" value="#000000">
+        </div>
+        <div class="field colour-modal-native-field">
+          <label for="colourModalNativePicker">Full spectrum</label>
+          <input type="color" id="colourModalNativePicker" value="#000000">
+        </div>
+        <button type="button" id="colourModalAddBtn" class="btn btn-small">+ Add colour</button>
+      </div>
+    </div>
+
+    <div class="colour-modal-foot">
+      <button type="button" id="colourModalDoneBtn" class="btn">Done</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+  /* ---- delete buttons: variant rows + photo remove, replacing raw checkboxes ---- */
+  .manager-field-delete { display: flex; align-items: flex-end; }
+  .manager-field-delete input[type="checkbox"] { display: none; }
+  .btn-icon-delete {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--hairline, #ddd); background: var(--white, #fff);
+    color: var(--danger, #b3261e); cursor: pointer; padding: 0; flex-shrink: 0;
+    transition: background .15s, color .15s;
+  }
+  .btn-icon-delete svg { width: 16px; height: 16px; }
+  .btn-icon-delete:hover { background: var(--danger-soft, #fdecea); }
+  .btn-icon-delete.is-undo { color: var(--ink-soft, #555); }
+  .btn-icon-delete.is-undo:hover { background: var(--ivory, #f4f2ee); }
+
+  .manager-variant-row.is-removed { opacity: .45; }
+  .manager-variant-row.is-removed input:not([type="checkbox"]) { pointer-events: none; text-decoration: line-through; }
+
+  .manager-current-image-wrap { position: relative; display: inline-block; margin-bottom: 8px; }
+  .manager-current-image-wrap .btn-icon-delete {
+    position: absolute; top: -8px; right: -8px;
+    width: 28px; height: 28px; background: var(--white, #fff);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+  .manager-current-image-wrap .btn-icon-delete svg { width: 13px; height: 13px; }
+  .manager-current-image-wrap.is-removed .manager-current-image { opacity: .35; filter: grayscale(1); }
+
+  .colour-picker-trigger { margin-top: 10px; }
+  .btn-small { padding: 6px 12px; font-size: 0.85rem; }
+  .colour-swatch-preview {
+    display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.2); vertical-align: middle; margin-right: 6px; background: #fff;
+  }
+  .colour-chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .colour-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 4px;
+    border-radius: 999px; background: rgba(0,0,0,0.05); font-size: 0.82rem;
+  }
+  .colour-chip-swatch { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.15); }
+  .colour-chip-remove { border: none; background: transparent; cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 2px; }
+  .colour-chip-empty { font-size: 0.82rem; color: #888; }
+
+  .colour-modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    align-items: center; justify-content: center; z-index: 1000; padding: 16px;
+  }
+  .colour-modal-overlay.is-open { display: flex; }
+  .colour-modal { background: #fff; border-radius: 10px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+  .colour-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; }
+  .colour-modal-head h3 { margin: 0; }
+  .colour-modal-close { border: none; background: transparent; font-size: 1.4rem; line-height: 1; cursor: pointer; }
+  .colour-modal-body { padding: 16px 20px; }
+  .colour-swatch-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 16px; }
+  .colour-swatch-btn {
+    width: 100%; aspect-ratio: 1; border-radius: 6px; border: 1px solid rgba(0,0,0,0.15); cursor: pointer;
+  }
+  .colour-swatch-btn:hover { outline: 2px solid #0F80C4; outline-offset: 1px; }
+  .colour-modal-hex-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+  .colour-modal-hex-row .field { flex: 1; min-width: 120px; }
+  .colour-modal-native-field { flex: 0 0 auto; min-width: 0; }
+  #colourModalNativePicker {
+    width: 44px; height: 38px; padding: 2px; border: 1px solid rgba(0,0,0,0.2);
+    border-radius: 6px; cursor: pointer; background: none;
+  }
+  .colour-modal-preview-dot {
+    display: inline-block; width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.2); flex-shrink: 0; background: #000;
+  }
+  .colour-modal-foot { padding: 12px 20px; border-top: 1px solid #eee; text-align: right; }
+
+  /* ---- dark theme overrides for colour picker + modal ---- */
+  html[data-theme-resolved="dark"] .colour-swatch-preview { border-color: var(--mgr-border); background: var(--mgr-surface); }
+  html[data-theme-resolved="dark"] .colour-chip { background: var(--mgr-surface-raised); color: var(--mgr-text); }
+  html[data-theme-resolved="dark"] .colour-chip-swatch { border-color: var(--mgr-border); }
+  html[data-theme-resolved="dark"] .colour-chip-remove { color: var(--mgr-text-muted); }
+  html[data-theme-resolved="dark"] .colour-chip-empty { color: var(--mgr-text-muted); }
+
+  html[data-theme-resolved="dark"] .colour-modal-overlay { background: rgba(0,0,0,0.6); }
+  html[data-theme-resolved="dark"] .colour-modal { background: var(--mgr-surface); color: var(--mgr-text); }
+  html[data-theme-resolved="dark"] .colour-modal-head { border-bottom-color: var(--mgr-border); }
+  html[data-theme-resolved="dark"] .colour-modal-head h3 { color: var(--mgr-text); }
+  html[data-theme-resolved="dark"] .colour-modal-close { color: var(--mgr-text-muted); }
+  html[data-theme-resolved="dark"] .colour-modal-close:hover { color: var(--mgr-text); }
+  html[data-theme-resolved="dark"] .colour-swatch-btn { border-color: var(--mgr-border); }
+  html[data-theme-resolved="dark"] .colour-swatch-btn:hover { outline-color: var(--mgr-accent); }
+  html[data-theme-resolved="dark"] .colour-modal-hex-row .field label { color: var(--mgr-text-muted); }
+  html[data-theme-resolved="dark"] #colourModalNameInput,
+  html[data-theme-resolved="dark"] #colourModalHexInput { background: var(--mgr-surface-raised); border-color: var(--mgr-border); color: var(--mgr-text); }
+  html[data-theme-resolved="dark"] #colourModalNativePicker { border-color: var(--mgr-border); }
+  html[data-theme-resolved="dark"] .colour-modal-preview-dot { border-color: var(--mgr-border); }
+  html[data-theme-resolved="dark"] .colour-modal-foot { border-top-color: var(--mgr-border); }
+</style>
+
+<template id="variantTemplate">
+  <div class="manager-variant-row">
+    <div class="field"><label>Name</label><input type="text" name="__prefix__-name" id="id___prefix__-name"></div>
+    <div class="field"><label>Price (KES)</label><input type="number" step="0.01" name="__prefix__-price" id="id___prefix__-price"></div>
+    <div class="field manager-field-checkbox">
+      <input type="checkbox" name="__prefix__-is_default" id="id___prefix__-is_default">
+      <label for="id___prefix__-is_default">Default</label>
+    </div>
+    <div class="field"><label>Order</label><input type="number" name="__prefix__-sort_order" id="id___prefix__-sort_order" value="0"></div>
+    <div class="field manager-field-delete">
+      <button type="button" class="btn-icon-delete" data-role="delete-new-variant" title="Remove variant" aria-label="Remove variant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+    </div>
+  </div>
+</template>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  "use strict";
+  var addBtn = document.getElementById("addVariantBtn");
+  var rows = document.getElementById("variantRows");
+  var template = document.getElementById("variantTemplate");
+  var totalForms = document.querySelector("#id_variants-TOTAL_FORMS");
+  if (!addBtn || !rows || !template || !totalForms) return;
+
+  addBtn.addEventListener("click", function () {
+    var index = parseInt(totalForms.value, 10);
+    var html = template.innerHTML.split("__prefix__").join("variants-" + index);
+    var wrapper = document.createElement("div");
+    wrapper.innerHTML = html.trim();
+    rows.appendChild(wrapper.firstElementChild);
+    totalForms.value = index + 1;
+  });
+
+  var TRASH_ICON = '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>';
+  var UNDO_ICON = '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-6.7L3 9"/>';
+
+  // Existing (saved) variant rows: clicking the button checks the
+  // formset's DELETE field (so Django actually deletes it on submit)
+  // and dims the row - clicking again undoes both, since nothing is
+  // permanent until the whole form is saved.
+  rows.addEventListener("click", function (e) {
+    var deleteBtn = e.target.closest('[data-role="delete-variant"]');
+    if (deleteBtn) {
+      var row = deleteBtn.closest(".manager-variant-row");
+      var checkbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+      var removed = row.classList.toggle("is-removed");
+      if (checkbox) checkbox.checked = removed;
+      deleteBtn.classList.toggle("is-undo", removed);
+      deleteBtn.innerHTML = removed
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + TRASH_ICON + '</svg>';
+      deleteBtn.title = removed ? "Undo remove" : "Remove variant";
+      deleteBtn.setAttribute("aria-label", deleteBtn.title);
+      return;
+    }
+
+    // Freshly added (unsaved) rows: nothing to "undo" server-side yet,
+    // so the button just drops the row straight out of the DOM.
+    var newBtn = e.target.closest('[data-role="delete-new-variant"]');
+    if (newBtn) {
+      var newRow = newBtn.closest(".manager-variant-row");
+      newRow.parentNode.removeChild(newRow);
+    }
+  });
+})();
+
+(function () {
+  "use strict";
+  var removeImageBtn = document.getElementById("removeImageBtn");
+  var wrap = document.getElementById("productImageWrap");
+  if (!removeImageBtn || !wrap) return;
+
+  var checkbox = wrap.querySelector('input[type="checkbox"][name$="-clear"]');
+  var TRASH_ICON = '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>';
+  var UNDO_ICON = '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-6.7L3 9"/>';
+
+  removeImageBtn.addEventListener("click", function () {
+    var removed = wrap.classList.toggle("is-removed");
+    if (checkbox) checkbox.checked = removed;
+    removeImageBtn.classList.toggle("is-undo", removed);
+    removeImageBtn.innerHTML = removed
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + TRASH_ICON + '</svg>';
+    removeImageBtn.title = removed ? "Keep photo" : "Remove photo";
+    removeImageBtn.setAttribute("aria-label", removeImageBtn.title);
+  });
+})();
+
+(function () {
+  "use strict";
+  var COLOUR_PREFIX = "colours";
+
+  var totalFormsInput = document.querySelector("#id_colours-TOTAL_FORMS");
+  var rowsContainer = document.getElementById("colourFormsetRows");
+  var chipList = document.getElementById("colourChipList");
+  var swatchPreview = document.getElementById("colourSwatchPreview");
+  var modal = document.getElementById("colourModal");
+  var openBtn = document.getElementById("openColourModalBtn");
+  var closeBtn = document.getElementById("closeColourModalBtn");
+  var doneBtn = document.getElementById("colourModalDoneBtn");
+  var hexInput = document.getElementById("colourModalHexInput");
+  var nameInput = document.getElementById("colourModalNameInput");
+  var addBtn = document.getElementById("colourModalAddBtn");
+  var swatchGrid = document.getElementById("colourSwatchGrid");
+  var previewDot = document.getElementById("colourModalPreviewDot");
+  var nativePicker = document.getElementById("colourModalNativePicker");
+
+  if (!totalFormsInput || !rowsContainer || !modal) return;
+
+  var HEX_RE = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+  function normalizeHex(hex) {
+    hex = (hex || "").trim();
+    if (/^#([0-9a-f]{3})$/i.test(hex)) {
+      hex = "#" + hex.slice(1).split("").map(function (c) { return c + c; }).join("");
+    }
+    return hex.toLowerCase();
+  }
+
+  function getRows() {
+    return Array.prototype.slice.call(rowsContainer.querySelectorAll(".colour-formset-row"));
+  }
+
+  function isRowActive(row) {
+    var del = row.querySelector('[name$="-DELETE"]');
+    if (del && del.checked) return false;
+    var nameEl = row.querySelector('[name$="-name"]');
+    var hexEl = row.querySelector('[name$="-hex_code"]');
+    return !!(nameEl && hexEl && nameEl.value.trim() && hexEl.value.trim());
+  }
+
+  function renderChips() {
+    chipList.innerHTML = "";
+    var active = getRows().filter(isRowActive);
+
+    active.forEach(function (row) {
+      var nameEl = row.querySelector('[name$="-name"]');
+      var hexEl = row.querySelector('[name$="-hex_code"]');
+      var chip = document.createElement("span");
+      chip.className = "colour-chip";
+
+      var dot = document.createElement("span");
+      dot.className = "colour-chip-swatch";
+      dot.style.background = hexEl.value;
+
+      var label = document.createElement("span");
+      label.className = "colour-chip-name";
+      label.textContent = nameEl.value;
+
+      var remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "colour-chip-remove";
+      remove.setAttribute("aria-label", "Remove " + nameEl.value);
+      remove.innerHTML = "&times;";
+      remove.addEventListener("click", function () { removeRow(row); });
+
+      chip.appendChild(dot);
+      chip.appendChild(label);
+      chip.appendChild(remove);
+      chipList.appendChild(chip);
+    });
+
+    if (!active.length) {
+      var empty = document.createElement("span");
+      empty.className = "colour-chip-empty";
+      empty.textContent = "No colours added yet";
+      chipList.appendChild(empty);
+    }
+
+    if (swatchPreview) {
+      var last = active[active.length - 1];
+      swatchPreview.style.background = last
+        ? last.querySelector('[name$="-hex_code"]').value
+        : "#fff";
+    }
+  }
+
+  function removeRow(row) {
+    var del = row.querySelector('[name$="-DELETE"]');
+    if (del) {
+      del.checked = true;
+    } else {
+      row.parentNode.removeChild(row);
+    }
+    renderChips();
+  }
+
+  function addColourRow(name, hex) {
+    var index = parseInt(totalFormsInput.value, 10);
+    var wrapper = document.createElement("div");
+    wrapper.className = "colour-formset-row";
+    wrapper.setAttribute("data-form-index", index);
+    wrapper.innerHTML =
+      '<input type="hidden" name="' + COLOUR_PREFIX + '-' + index + '-name">' +
+      '<input type="hidden" name="' + COLOUR_PREFIX + '-' + index + '-hex_code">' +
+      '<input type="hidden" name="' + COLOUR_PREFIX + '-' + index + '-sort_order" value="' + index + '">';
+    wrapper.querySelector('[name$="-name"]').value = name;
+    wrapper.querySelector('[name$="-hex_code"]').value = hex;
+    rowsContainer.appendChild(wrapper);
+    totalFormsInput.value = index + 1;
+    renderChips();
+  }
+
+  function updatePreviewDot() {
+    if (!previewDot) return;
+    var hex = normalizeHex(hexInput.value);
+    previewDot.style.background = HEX_RE.test(hex) ? hex : "#fff";
+  }
+
+  function syncNativePicker() {
+    if (!nativePicker) return;
+    var hex = normalizeHex(hexInput.value);
+    if (HEX_RE.test(hex) && hex.length === 7) nativePicker.value = hex;
+  }
+
+  function openModal() {
+    modal.classList.add("is-open");
+    hexInput.value = "#000000";
+    nameInput.value = "";
+    if (nativePicker) nativePicker.value = "#000000";
+    updatePreviewDot();
+    hexInput.focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove("is-open");
+  }
+
+  if (openBtn) openBtn.addEventListener("click", openModal);
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  if (doneBtn) doneBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", function (e) {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+  });
+
+  if (hexInput) {
+    hexInput.addEventListener("input", function () {
+      updatePreviewDot();
+      syncNativePicker();
+    });
+  }
+
+  if (nativePicker) {
+    nativePicker.addEventListener("input", function () {
+      hexInput.value = nativePicker.value;
+      if (!nameInput.value.trim()) nameInput.value = "";
+      updatePreviewDot();
+    });
+  }
+
+  if (swatchGrid) {
+    Array.prototype.forEach.call(swatchGrid.querySelectorAll("[data-hex]"), function (btn) {
+      btn.style.background = btn.getAttribute("data-hex");
+      btn.addEventListener("click", function () {
+        hexInput.value = btn.getAttribute("data-hex");
+        if (!nameInput.value.trim()) nameInput.value = btn.getAttribute("data-name") || "";
+        updatePreviewDot();
+        syncNativePicker();
+      });
+    });
+  }
+
+  if (addBtn) {
+    addBtn.addEventListener("click", function () {
+      var hex = normalizeHex(hexInput.value);
+      if (!HEX_RE.test(hex)) {
+        hexInput.focus();
+        return;
+      }
+      var name = nameInput.value.trim() || hex.toUpperCase();
+      addColourRow(name, hex);
+      hexInput.value = "#000000";
+      nameInput.value = "";
+      if (nativePicker) nativePicker.value = "#000000";
+      updatePreviewDot();
+      hexInput.focus();
+    });
+  }
+
+  renderChips();
+})();
+</script>
+{% endblock %}

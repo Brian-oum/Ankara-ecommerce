@@ -1,0 +1,33 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Categories — Manager{% endblock %}
+{% block manager_title %}Categories{% endblock %}
+
+{% block manager_content %}
+<div class="manager-detail-grid">
+  <div class="manager-panel">
+    <h2>All Categories</h2>
+    {% if categories %}
+      <ul class="manager-simple-list">
+        {% for category in categories %}
+          <li>{{ category.name }} <span class="manager-muted">({{ category.products.count }} products)</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="manager-empty">No categories yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="manager-panel">
+    <h2>Add Category</h2>
+    <form method="post" class="manager-form">
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ form.name.id_for_label }}">Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}<div class="field-errors">{{ form.name.errors.0 }}</div>{% endif %}
+      </div>
+      <button type="submit" class="btn">Add Category</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
