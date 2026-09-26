@@ -61,6 +61,12 @@ class Product(models.Model):
     def ordered_variants(self):
         return self.variants.all()
 
+    def ordered_colours(self):
+        return self.colours.all()
+
+    def has_colours(self):
+        return self.colours.exists()
+
     def default_variant(self):
         variants = list(self.variants.all())
         if not variants:
@@ -127,6 +133,30 @@ class ProductVariant(models.Model):
         return f"{self.product.name} — {self.name}"
 
 
+class ProductColour(models.Model):
+    """
+    An available colour option for a Product - e.g. Black, Burgundy,
+    Honey Blonde. Purely descriptive (no price impact); shown on the
+    product page as swatches using `hex_code`.
+    """
+
+    product = models.ForeignKey(Product, related_name="colours", on_delete=models.CASCADE)
+
+    name = models.CharField(max_length=50, help_text="e.g. Black, Burgundy, Honey Blonde")
+    hex_code = models.CharField(
+        max_length=7,
+        help_text="Swatch colour, e.g. #1A1A1A",
+    )
+
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.product.name} — {self.name}"
+
+
 
 class Order(models.Model):
     """
@@ -141,6 +171,20 @@ class Order(models.Model):
         ("Failed", "Failed"),
     ]
 
+    # Fulfillment, kept deliberately separate from `status` above. `status`
+    # tracks the PAYMENT and is driven by Jenga (see payment_callback in
+    # views.py) - conflating delivery into those same three values would
+    # mean a manual "Shipped" edit could get clobbered by the next Jenga
+    # callback. Only meaningful once status == "Completed"; a manager
+    # can't move it until payment is actually confirmed (enforced in
+    # manager_order_update_delivery_status).
+    DELIVERY_STATUS_CHOICES = [
+        ("processing", "Processing"),
+        ("shipped", "Shipped"),
+        ("out_for_delivery", "Out for Delivery"),
+        ("delivered", "Delivered"),
+    ]
+    delivery_notes = models.CharField(max_length=255, blank=True)
     order_reference = models.CharField(max_length=30, unique=True)
 
     # Optional - only set when the order was placed while signed in, so
@@ -160,8 +204,35 @@ class Order(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=20)
 
+    # ---- delivery location & price breakdown -------------------------
+    # `total_amount` stays what it's always been - the grand total
+    # actually charged (goods + shipping + VAT) - so nothing that
+    # already reads total_amount (Payment.amount, WhatsApp/email
+    # messages, admin, templates) needs to change. The three fields
+    # below just make that total auditable after the fact.
+    subtotal_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    shipping_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vat_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    # Area name is the source of truth for shipping_fee (looked up from
+    # shipping.AREA_LOOKUP server-side at checkout - never trust a
+    # client-submitted fee). Lat/lng/address are just the pin the
+    # customer dropped on the OSM map, kept for the rider's benefit -
+    # they don't drive pricing.
+    delivery_area = models.CharField(max_length=100, blank=True)
+    delivery_zone = models.CharField(max_length=100, blank=True)
+    delivery_address = models.CharField(max_length=255, blank=True)
+    delivery_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    delivery_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+
+    delivery_status = models.CharField(
+        max_length=20, choices=DELIVERY_STATUS_CHOICES, default="processing"
+    )
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -171,6 +242,28 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_reference
+
+    # ---- delivery tracking ------------------------------------------
+    def delivery_timeline(self):
+        """
+        Ordered [{key, label, is_done, timestamp}, ...] for a simple
+        step tracker on the customer's account page. Only call this once
+        status == "Completed" - before payment is confirmed there's
+        nothing to track yet.
+        """
+        stage_order = [key for key, _ in self.DELIVERY_STATUS_CHOICES]
+        current_index = stage_order.index(self.delivery_status) if self.delivery_status in stage_order else 0
+        timestamps = {"shipped": self.shipped_at, "delivered": self.delivered_at}
+
+        return [
+            {
+                "key": key,
+                "label": label,
+                "is_done": index <= current_index,
+                "timestamp": timestamps.get(key),
+            }
+            for index, (key, label) in enumerate(self.DELIVERY_STATUS_CHOICES)
+        ]
 
     def get_whatsapp_link(self, to_number=None):
         """
@@ -196,6 +289,24 @@ class Order(models.Model):
 
         return build_order_admin_reply_link(self, self.items.select_related("product").all())
 
+    def get_payment_failed_whatsapp_link(self):
+        """Business -> Customer. Tap-to-send nudge when payment didn't go through."""
+        from .whatsapp import build_payment_failed_link
+
+        return build_payment_failed_link(self)
+
+    def get_shipped_whatsapp_link(self):
+        """Business -> Customer. Tap-to-send heads-up that the order is on its way."""
+        from .whatsapp import build_order_shipped_link
+
+        return build_order_shipped_link(self)
+
+    def get_delivered_whatsapp_link(self):
+        """Business -> Customer. Tap-to-send confirmation once it's arrived."""
+        from .whatsapp import build_order_delivered_link
+
+        return build_order_delivered_link(self)
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
@@ -205,6 +316,21 @@ class OrderItem(models.Model):
     # Snapshot of the price at purchase time, so later price changes on
     # the product don't rewrite history for past orders.
     price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Snapshot of the colour the customer picked (if the product has
+    # any) - stored as plain values rather than a FK to ProductColour so
+    # the order still shows what was bought even if that colour is later
+    # renamed or removed from the product.
+    colour_name = models.CharField(max_length=50, blank=True)
+    colour_hex = models.CharField(max_length=7, blank=True)
+
+    # Free-text customisation the customer typed in the "Need something
+    # specific?" modal on the product page - e.g. a colour that isn't in
+    # the swatch list, a sizing tweak, a monogram, etc. Purely
+    # informational (never affects price); carried from the cart line
+    # straight through to the order so it survives even if the customer
+    # never comes back to this page.
+    custom_request = models.TextField(blank=True)
 
     def subtotal(self):
         return self.price * self.quantity
@@ -240,6 +366,66 @@ class Payment(models.Model):
 
     def __str__(self):
         return self.payment_reference
+
+
+class ManagerProfile(models.Model):
+    """
+    Manager-only account extras that don't belong on the auth User model
+    itself - currently just the sidebar avatar shown in manager_base.html.
+    Created on demand the first time a manager visits Settings or updates
+    their photo (see _get_manager_profile in views.py), so existing
+    managers don't need a data migration to get one.
+    """
+
+    THEME_LIGHT = "light"
+    THEME_DARK = "dark"
+    THEME_SYSTEM = "system"
+    THEME_CHOICES = [
+        (THEME_LIGHT, "Light"),
+        (THEME_DARK, "Dark"),
+        (THEME_SYSTEM, "Match system"),
+    ]
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="manager_profile"
+    )
+    photo = models.ImageField(upload_to="manager_avatars/", blank=True, null=True)
+
+    # ---- appearance -------------------------------------------------
+    theme_preference = models.CharField(
+        max_length=10, choices=THEME_CHOICES, default=THEME_LIGHT,
+        help_text="Applied across the whole manager area, on every device you sign into.",
+    )
+
+    # ---- notifications ------------------------------------------------
+    # One master switch plus a per-event switch each, so a manager can
+    # go fully quiet without losing their individual picks, or flip a
+    # single event on/off without touching the others.
+    email_notifications_enabled = models.BooleanField(
+        default=True, help_text="Master switch - turn off to stop all manager emails.",
+    )
+    notify_new_orders = models.BooleanField(
+        default=True, help_text="Email me when a customer places a new order.",
+    )
+    notify_new_reviews = models.BooleanField(
+        default=True, help_text="Email me when a new product or store review is submitted for approval.",
+    )
+    notify_contact_messages = models.BooleanField(
+        default=True, help_text="Email me when someone submits the contact form.",
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Profile for {self.user}"
+
+    def wants(self, event_flag_name):
+        """
+        True if this manager should be emailed for a given event -
+        checked against both the master switch and the specific flag
+        (e.g. profile.wants("notify_new_orders")).
+        """
+        return self.email_notifications_enabled and getattr(self, event_flag_name, False)
 
 
 class ContactMessage(models.Model):

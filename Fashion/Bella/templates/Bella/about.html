@@ -17,10 +17,22 @@
 <section class="about-hero">
   <div class="about-hero-inner">
     <div class="about-hero-copy">
-      <span class="badge-circle">Our<br>Story</span>
-      <h1>Limited collections.<br>Exceptional fabrics.<br><span class="accent">Timeless design.</span></h1>
-      <p class="lede">Etsirbella has grown from a single collection into 
-        a distinguished fashion brand committed to creating refined garments that transcend seasonal trends.</p>
+      <div class="about-hero-title-row">
+        <span class="badge-circle">Our<br>Story</span>
+        <h1>Buy.Educate. <br><span class="accent">Transform.</span></h1>
+      </div>
+      <p class="lede">Welcome to the world where creativity meets impact.
+        Etsirbella designs is a Kenyan brand that has the interest of the child and women at heart. 
+        We are dedicated to transforming the lives of the underprivileged children and upskilling women
+        in the slum through handmade crafts.</p>
+      <p class="lede">The company creates and curates products across hair and beauty, fashion accessories, bags and lifestyle, footwear and gifting, and bespoke and corporate solutions.
+         Its purpose is anchored in a simple model: Buy. Educate. Transform.</p>
+      <p class="lede">Customers purchase quality products that celebrate African beauty 
+        and creativity. The enterprise allocates 40% of its revenue toward Etsirbella Scholarship,
+        creating a structured bridge between commercial activity and education-focused social impact.
+        The ambition is to build a strong, scalable African brand in which customer choice, 
+        enterprise growth and community transformation reinforce one another.</p>
+
       <div class="hero-cta-row">
         <a href="{% url 'contact' %}" class="btn-pill">
           <span>Get in touch</span>
@@ -103,22 +115,22 @@
     <div class="impact-stats">
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
-        <span class="num" data-count="3200">430+</span>
-        <span class="label">Learners Supported</span>
+        <span class="num" data-count="3200">700+</span>
+        <span class="label">Vulnerable Learners Supported</span>
       </div>
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-        <span class="num" data-count="1500">20+</span>
-        <span class="label">Scholarship Programme</span>
+        <span class="num" data-count="1500">500+</span>
+        <span class="label">Supplied Hygiene Packs</span>
       </div>
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span class="num" data-count="24">100+</span>
+        <span class="num" data-count="24">500+</span>
         <span class="label">Women Empowered</span>
       </div>
       <div class="impact-stat">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
-        <span class="num" data-count="6">430+</span>
+        <span class="num" data-count="6">500+</span>
         <span class="label">School Feeding Programme</span>
       </div>
     </div>
@@ -143,11 +155,17 @@
     </div>
     <div class="about-story-copy">
       <span class="eyebrow">Behind the label</span>
-      <h2>Designed, cut and stitched in Nairobi.</h2>
-      <p>Welcome to Etsirbella Designs where unique handmade fashion accessories meet powerful stories of transformation.</p>
-      <p>We create handcrafted Afro wigs and vibrant Ankara accessories that inspire confidence, celebrate African beauty and create lasting impact.</p>
+      <h2>Designed, cut and stitched for impact.</h2>
+      <p>Etsirbella Designs began in 2018 as a conventional fashion and accessories business.
+        The enterprise grew from a passion for creativity, fashion and customer needs, 
+        while the founder's wider work in education and community engagement increasingly
+        revealed the need for sustainable ways to connect business activity with social impact.</p>
+      <p>In 2023, Etsirbella Designs made a deliberate shift: from being simply a business that
+        sells products to becoming a purpose-driven social impact business.
+        The commercial foundation remained essential, but its role became clearer,
+        build a sustainable enterprise whose success can contribute to opportunities
+        for people and education for children.</p>
       <p>Through our Buy. Educate. Transform. model, every purchase helps provide quality education for underprivileged children in Kibera.</p>
-      <p>Questions about sizing, an order, or a wholesale enquiry? We'll get back to you.</p>
       <a href="{% url 'contact' %}" class="btn-pill-outline">
         <span class="btn-pill-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 7l9 6 9-6M4 5h16v14H4z"/></svg>
@@ -248,20 +266,15 @@
       </div>
 
       <div class="cta-copy-col">
-        <span class="eyebrow">Ready when you are</span>
+        <span class="eyebrow">Talk To Us</span>
         <h2>Style that speaks for you.</h2>
-        <p>From bridal Ankara pieces to everyday accessories, reach us however works best for you &mdash; WhatsApp, Instagram, a call, or in person &mdash; and let's put your next look together.</p>
+        <p>We are committed to building an African purpose-driven fashion brand where commercial growth increases the enterprise's capacity to contribute to education and community transformation.
+Reach us however works best for you; WhatsApp, Instagram, a call, or in person  and let's impact together.</p>
         <div class="cta-band-actions">
           <a href="{% url 'contact' %}" class="btn-pill">
-            Book Your Appointment
+            Make Your Impact
             <span class="btn-pill-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </span>
-          </a>
-          <a href="#" class="btn-pill-outline">
-            Chat on WhatsApp
-            <span class="btn-pill-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.55L4 20l1.02-4.46A8.5 8.5 0 1 1 21 11.5z"/><path d="M8.5 10.5c.3 2.6 2.4 4.7 5 5"/></svg>
             </span>
           </a>
         </div>

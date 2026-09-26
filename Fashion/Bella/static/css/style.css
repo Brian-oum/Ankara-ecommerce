@@ -520,7 +520,7 @@ img { max-width: 100%; display: block; }
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 56px 28px 130px clamp(28px, 6vw, 72px);
+  padding: 56px 28px 130px clamp(20px, 4vw, 28px);
 }
 
 .hero-copy { position: relative; z-index: 1; max-width: 460px; animation: heroSlideLeft .9s ease both; }
@@ -532,9 +532,9 @@ img { max-width: 100%; display: block; }
 .hero-stats { animation: heroFadeIn .7s ease both; animation-delay: .62s; }
 
 .hero-copy h1 {
-  font-size: 54px;
+  font-size: 50px;
   line-height: 1.05;
-  max-width: 14ch;
+  max-width: 25ch;
 }
 
 .hero-copy h1 .accent {
@@ -544,7 +544,7 @@ img { max-width: 100%; display: block; }
 }
 
 .hero-copy p.lede {
-  font-size: 17px;
+  font-size: 14px;
   color: var(--ink-soft);
   max-width: 38ch;
   margin-bottom: 34px;
@@ -1048,6 +1048,18 @@ img { max-width: 100%; display: block; }
 .filter-pill.active { border-color: var(--ink); color: var(--ink); background: var(--white); }
 
 /* ---- product detail --------------------------------------------------------- */
+/* Tighter than the default .section (76px top/bottom) so the product
+   page fits within one screen without scrolling to see the price/
+   add-to-bag row - this page doesn't need the extra breathing room a
+   landing section does. */
+.product-detail-section {
+  padding: 28px 0 56px;
+}
+
+@media (max-width: 860px) {
+  .product-detail-section { padding: 18px 0 44px; }
+}
+
 .product-detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1073,7 +1085,7 @@ img { max-width: 100%; display: block; }
 .product-detail-image img { width: 100%; height: 100%; object-fit: cover; }
 
 @media (max-width: 860px) {
-  .product-detail-image { max-height: 320px; }
+  .product-detail-image { max-height: 280px; }
 }
 
 /* =========================================================================
@@ -1467,6 +1479,139 @@ img { max-width: 100%; display: block; }
 .variant-pill.is-selected { border-color: var(--stone); background: var(--white); font-weight: 600; }
 .variant-pill.is-disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
 .variant-pill input { position: absolute; opacity: 0; }
+
+/* ---- product detail: available colours - customer picks one before adding to bag, same submit target as the variant picker via the `form` attribute */
+.colour-swatches { margin: 12px 0; }
+.colour-swatch-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.colour-swatch-option { position: relative; display: inline-block; cursor: pointer; line-height: 0; }
+.colour-swatch-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.colour-swatch-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+  display: inline-block;
+  cursor: pointer;
+}
+.colour-swatch-option.is-selected .colour-swatch-dot {
+  box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--ink);
+}
+.colour-swatch-selected-name { font-size: 13px; color: var(--stone); margin-top: 8px; }
+
+/* ---- product detail: "custom request" - lets a customer ask for a
+   colour/tweak that isn't in the swatch list, via a modal ---------- */
+.colour-swatches-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.colour-swatches--no-colours { margin: 16px 0; }
+
+.custom-request-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--bramble);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.custom-request-btn:hover { color: var(--ink); }
+
+.custom-request-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  background: var(--ivory);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.custom-request-summary svg { flex-shrink: 0; color: var(--bramble); }
+.custom-request-summary span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom-request-summary button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.custom-request-summary button:hover { color: var(--ink); }
+
+.custom-request-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.custom-request-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 27, 23, 0.55);
+}
+.custom-request-modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  background: var(--white);
+  border: 1px solid var(--hairline);
+  padding: 28px 24px 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.custom-request-modal-panel h3 {
+  font-family: 'Fraunces', serif;
+  font-size: 20px;
+  margin: 0 0 10px;
+  padding-right: 24px;
+}
+.custom-request-modal-hint {
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+.custom-request-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  line-height: 0;
+}
+.custom-request-modal-close:hover { color: var(--ink); }
+.custom-request-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+@media (max-width: 480px) {
+  .custom-request-modal-actions { flex-direction: column-reverse; }
+  .custom-request-modal-actions .btn,
+  .custom-request-modal-actions .btn-outline { width: 100%; text-align: center; }
+}
 .variant-oos { font-size: 11px; margin-left: 4px; }
 .category-card .category-icon {
   width: 42px;
@@ -2089,15 +2234,24 @@ img { max-width: 100%; display: block; }
   position: relative;
   z-index: 2;
   max-width: 600px;
-  padding: 64px 28px 64px clamp(28px, 6vw, 72px);
+  padding: 0 28px 64px clamp(28px, 6vw, 72px);
+  align-self: start;
+  margin-top: 56px;
   animation: heroSlideLeft .9s ease both;
+}
+
+.about-hero-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 22px;
 }
 
 .about-hero-copy h1 {
   font-size: 50px;
   line-height: 1.08;
   max-width: 500px;
-  margin-bottom: 22px;
+  margin-bottom: 0;
   animation: heroFadeIn .7s ease both;
   animation-delay: .38s;
 }
@@ -2109,12 +2263,16 @@ img { max-width: 100%; display: block; }
 }
 
 .about-hero-copy .lede {
-  font-size: 17px;
+  font-size: 15px;
   color: var(--ink-soft);
-  max-width: 48ch;
-  margin-bottom: 34px;
+  max-width: 900px;
+  margin-bottom: 18px;
   animation: heroFadeIn .7s ease both;
   animation-delay: .46s;
+}
+
+.about-hero-copy .lede:last-of-type {
+  margin-bottom: 34px;
 }
 
 .about-hero-copy .hero-cta-row {
@@ -2130,6 +2288,7 @@ img { max-width: 100%; display: block; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 104px;
   height: 104px;
   border-radius: 50%;
@@ -2143,7 +2302,7 @@ img { max-width: 100%; display: block; }
   text-align: center;
   line-height: 1.5;
   position: relative;
-  margin-bottom: 30px;
+  margin-top: 0;
   animation: heroFadeIn .7s ease both;
   animation-delay: .2s;
 }
@@ -2241,12 +2400,20 @@ img { max-width: 100%; display: block; }
   .about-hero-inner { grid-template-columns: 1fr; min-height: 0; }
   .about-hero-copy { padding: 48px 20px 32px; max-width: none; }
   .about-hero-copy h1 { font-size: 38px; }
+  .about-hero-title-row { gap: 18px; }
   .about-hero-visual { min-height: 0; padding-bottom: 0; }
   .about-hero-photo { position: relative; border-radius: 24px; inset: auto; height: 46vh; }
   /* single clean photo on smaller screens — the overlapping circular
      accent photo is dropped rather than risking the same overlap glitch
      seen in the mission/vision photos above. */
   .about-hero-photo-circle { display: none; }
+}
+
+@media (max-width: 560px) {
+  /* below this, badge-beside-headline gets too tight — drop back to a
+     stacked layout so the badge doesn't squeeze the title's line-wrap */
+  .about-hero-title-row { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .badge-circle { margin-top: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2342,6 +2509,8 @@ img { max-width: 100%; display: block; }
 
 .about-story-copy .btn-pill-outline {
   margin-top: 12px;
+  background: var(--bramble);
+  color: var(--ivory);
 }
 
 @media (max-width: 900px) {
@@ -3182,7 +3351,7 @@ body.preloader-lock { overflow: hidden; }
    ========================================================================= */
 .whatsapp-float {
   position: fixed;
-  left: 24px;
+  right: 24px;
   bottom: 24px;
   z-index: 30;
   width: 56px;
@@ -3301,3 +3470,1089 @@ body.preloader-lock { overflow: hidden; }
 }
 
 .mobile-nav-action-form { width: 100%; margin: 0; }
+
+/* ---- account: order-details modal ---------------------------------- */
+.order-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.order-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 27, 23, 0.55);
+}
+.order-modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--white);
+  border: 1px solid var(--hairline);
+  padding: 30px clamp(20px, 3vw, 32px) 28px;
+}
+.order-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  line-height: 0;
+}
+.order-modal-close:hover { color: var(--ink); }
+
+.order-modal-loading { padding: 40px 0; text-align: center; color: var(--stone); }
+
+.order-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-right: 24px;
+}
+.order-modal-head h3 { font-family: 'Fraunces', serif; font-size: 22px; margin: 0; }
+.order-modal-date { font-size: 13px; color: var(--stone); margin-top: 4px; margin-bottom: 20px; }
+
+.order-modal-tracking {
+  border: 1px solid var(--hairline);
+  background: var(--ivory);
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.order-modal-items {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  padding: 18px 0;
+  margin-bottom: 18px;
+}
+
+.order-modal-item { display: flex; gap: 14px; }
+.order-modal-item-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid var(--hairline);
+  flex-shrink: 0;
+  background: var(--ivory);
+}
+.order-modal-item-info { flex: 1; min-width: 0; }
+.order-modal-item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.order-modal-item-name { font-weight: 600; }
+.order-modal-item-name a { color: var(--ink); text-decoration: none; }
+.order-modal-item-name a:hover { text-decoration: underline; }
+.order-modal-item-meta { font-size: 13px; color: var(--stone); margin-top: 3px; }
+.order-modal-item-money { text-align: right; flex-shrink: 0; font-size: 13px; color: var(--ink-soft); }
+.order-modal-item-subtotal { font-weight: 600; color: var(--ink); margin-top: 2px; }
+
+.order-modal-rate {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--hairline);
+  background: var(--ivory);
+}
+.order-modal-rate-stars { display: flex; gap: 4px; margin-bottom: 8px; }
+.order-modal-star {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--hairline);
+  cursor: pointer;
+}
+.order-modal-star.is-filled { color: var(--gold); }
+.order-modal-rate-comment {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  background: var(--white);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  resize: vertical;
+  min-height: 44px;
+  margin-bottom: 10px;
+}
+.order-modal-rate-comment:focus { outline: none; border-color: var(--bramble); }
+.order-modal-rate-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.order-modal-rate-row .btn-outline { padding: 8px 16px; font-size: 13px; }
+.order-modal-rate-status { font-size: 12px; color: var(--stone); }
+
+.order-modal-totals { margin-bottom: 20px; }
+.order-modal-totals-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--ink-soft);
+  padding: 4px 0;
+}
+.order-modal-totals-row--grand {
+  font-family: 'Fraunces', serif;
+  font-size: 18px;
+  color: var(--ink);
+  border-top: 1px solid var(--hairline);
+  margin-top: 6px;
+  padding-top: 10px;
+}
+
+.order-modal-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.order-modal-link { font-size: 13px; color: var(--bramble); text-decoration: underline; text-underline-offset: 2px; }
+.order-modal-link:hover { color: var(--ink); }
+
+@media (max-width: 480px) {
+  .order-modal-item { flex-direction: column; }
+  .order-modal-item-top { flex-direction: column; gap: 4px; }
+  .order-modal-item-money { text-align: left; }
+  .order-modal-actions { flex-direction: column; align-items: stretch; }
+  .order-modal-actions .btn-outline { text-align: center; }
+}
+
+/* ==========================================================================
+   Manager dashboard
+   ========================================================================== */
+.manager-shell { padding: 48px 0 100px; }
+.manager-shell-inner { display: block; }
+
+/* fixed, full-height rail — independent of the shell's own scroll/padding
+   so the border-right separator always runs the full height of the
+   screen, and the footer (margin-top: auto below) sits pinned to the
+   true bottom of the viewport rather than the bottom of the nav content */
+.manager-nav {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 76px;
+  z-index: 15;
+  background: var(--ivory);
+  border-right: 1px solid var(--hairline);
+  padding: 24px 16px 20px 4px;
+  display: flex; flex-direction: column; gap: 22px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width .22s ease;
+}
+.manager-shell-inner.is-nav-expanded .manager-nav { width: 240px; }
+
+.manager-main {
+  margin-left: calc(76px + 40px);
+  transition: margin-left .22s ease;
+}
+.manager-shell-inner.is-nav-expanded .manager-main { margin-left: calc(240px + 40px); }
+
+.manager-nav-top { display: flex; align-items: center; gap: 12px; }
+.manager-nav-brand { font-family: 'Fraunces', Georgia, serif; font-size: 18px; white-space: nowrap; }
+
+/* ---- hamburger toggle: the two outer bars run longer than the middle
+   one, expands/collapses the sidebar, collapsed (icon rail) by default */
+.manager-nav-toggle {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background .15s;
+}
+.manager-nav-toggle:hover { background: var(--ivory); }
+.manager-nav-toggle-line {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: width .15s ease;
+}
+.manager-nav-toggle-line--long { width: 20px; }
+.manager-nav-toggle-line--short { width: 12px; }
+
+/* ---- profile block: avatar (swappable photo) + name/email ------------ */
+.manager-nav-profile { display: flex; align-items: center; gap: 12px; }
+
+.manager-nav-avatar { position: relative; width: 44px; height: 44px; flex-shrink: 0; }
+.manager-nav-avatar-img {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--hairline);
+  background: var(--ivory);
+}
+.manager-nav-avatar-edit {
+  position: absolute;
+  right: -3px; bottom: -3px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--bramble);
+  color: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--ivory);
+  cursor: pointer;
+  transition: background .15s;
+}
+.manager-nav-avatar-edit:hover { background: var(--bramble-dark); }
+.manager-nav-avatar-edit svg { width: 11px; height: 11px; }
+
+.manager-nav-profile-info { display: flex; flex-direction: column; min-width: 0; }
+.manager-nav-profile-name {
+  font-size: 14px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.manager-nav-profile-email {
+  font-size: 12px; color: var(--stone);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---- nav links, icon + label -------------------------------------------- */
+.manager-nav nav { display: flex; flex-direction: column; gap: 4px; }
+.manager-nav-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px; border-radius: 8px;
+  color: var(--ink-soft); font-size: 14px;
+  border: none; background: none; font: inherit;
+  width: 100%; text-align: left; cursor: pointer;
+}
+.manager-nav-link:hover { background: var(--ivory); color: var(--ink); }
+.manager-nav-link.is-active { background: var(--bramble); color: var(--white); }
+.manager-nav-link.is-active .manager-nav-icon { color: var(--white); }
+
+.manager-nav-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; flex-shrink: 0;
+  color: var(--stone);
+}
+.manager-nav-icon svg { width: 18px; height: 18px; }
+.manager-nav-link:hover .manager-nav-icon,
+.manager-nav-link.is-active .manager-nav-icon { color: inherit; }
+
+.manager-nav-label { white-space: nowrap; }
+
+/* ---- footer: settings + logout ------------------------------------------ */
+.manager-nav-foot {
+  margin-top: auto;
+  border-top: 1px solid var(--hairline);
+  padding-top: 14px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.manager-nav-logout-form { margin: 0; }
+.manager-nav-link--logout:hover { background: var(--danger-soft); color: var(--danger); }
+.manager-nav-link--logout:hover .manager-nav-icon { color: var(--danger); }
+
+/* ---- collapsed state: icon rail only, labels/text hidden --------------- */
+.manager-shell-inner:not(.is-nav-expanded) .manager-nav-label,
+.manager-shell-inner:not(.is-nav-expanded) .manager-nav-brand,
+.manager-shell-inner:not(.is-nav-expanded) .manager-nav-profile-info {
+  display: none;
+}
+.manager-shell-inner:not(.is-nav-expanded) .manager-nav-link { justify-content: center; }
+.manager-shell-inner:not(.is-nav-expanded) .manager-nav-top { justify-content: center; }
+.manager-shell-inner:not(.is-nav-expanded) .manager-nav-profile { justify-content: center; }
+
+@media (max-width: 860px) {
+  /* the sidebar already drops to a horizontal scroller here — always show
+     it fully expanded and hide the toggle, collapsing makes no sense
+     once it's a top row instead of a side rail. It also comes back into
+     normal document flow instead of staying fixed full-height. */
+  .manager-nav {
+    position: static;
+    width: 100%;
+    height: auto;
+    flex-direction: row; align-items: center; overflow-x: auto;
+    border-right: none; border-bottom: 1px solid var(--hairline);
+  }
+  .manager-shell-inner.is-nav-expanded .manager-nav { width: 100%; }
+  .manager-main,
+  .manager-shell-inner.is-nav-expanded .manager-main { margin-left: 0; margin-top: 24px; }
+  .manager-nav-toggle { display: none; }
+  .manager-nav nav { flex-direction: row; }
+  .manager-nav-foot { flex-direction: row; margin-top: 0; margin-left: auto; border-top: none; padding-top: 0; }
+  .manager-shell-inner .manager-nav-label,
+  .manager-shell-inner .manager-nav-brand,
+  .manager-shell-inner .manager-nav-profile-info { display: inline; }
+  .manager-nav-profile-info { display: flex !important; }
+}
+
+.manager-main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+.manager-main-header h1 { margin: 0; font-size: clamp(24px, 3vw, 30px); }
+
+.manager-messages { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+.manager-message { padding: 12px 16px; border-radius: 8px; font-size: 14px; }
+.manager-message--success { background: #EEF2E5; color: #3E6B2E; }
+.manager-message--error { background: var(--danger-soft); color: var(--danger); }
+.manager-message--info, .manager-message--warning { background: #F7EFD9; color: #8A6A1B; }
+
+.manager-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.manager-stat-card { background: var(--white); border: 1px solid var(--hairline); border-radius: 12px; padding: 18px 20px; }
+.manager-stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--stone); margin-bottom: 8px; }
+.manager-stat-value { font-family: 'Fraunces', Georgia, serif; font-size: 26px; }
+.manager-stat-sub { font-size: 14px; color: var(--stone); }
+
+.manager-panel { background: var(--white); border: 1px solid var(--hairline); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+.manager-panel h2 { font-size: 18px; margin-bottom: 16px; }
+.manager-panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.manager-panel-head h2 { margin: 0; }
+
+.manager-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.manager-table th { text-align: left; color: var(--stone); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border-bottom: 1px solid var(--hairline); }
+.manager-table td { padding: 12px; border-bottom: 1px solid var(--hairline); vertical-align: middle; }
+.manager-table tfoot td { font-family: 'Fraunces', Georgia, serif; font-weight: 500; border-top: 2px solid var(--hairline); border-bottom: none; }
+.manager-muted { color: var(--stone); font-size: 12px; }
+
+.manager-colour-dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.manager-colour-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.15);
+  display: inline-block;
+}
+
+.manager-thumb { width: 42px; height: 42px; min-width: 42px; min-height: 42px; flex-shrink: 0; border-radius: 8px; object-fit: cover; }
+.manager-thumb--empty { display: block; background: var(--ivory); border: 1px dashed var(--hairline); }
+
+/* ---- product list: thumbnail + name in one cell ---------------------- */
+.manager-product-name-cell { display: flex; align-items: center; gap: 10px; }
+.manager-product-name { font-weight: 500; }
+
+/* ---- order list: stacked item thumbnails ---------------------------- */
+.manager-order-thumbs { display: flex; align-items: center; }
+.manager-order-thumb {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid var(--white);
+  box-shadow: 0 0 0 1px var(--hairline);
+  background: var(--ivory);
+}
+.manager-order-thumb--empty { display: block; border: 2px dashed var(--hairline); }
+.manager-order-thumb + .manager-order-thumb,
+.manager-order-thumb-more { margin-left: -10px; }
+.manager-order-thumb-more {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 2px solid var(--white);
+  box-shadow: 0 0 0 1px var(--hairline);
+  background: var(--ink);
+  color: var(--ivory);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---- manager tables: keep the order thumb column a fixed width so it
+   renders identically at every viewport, including once the table
+   switches to horizontal-scroll mode on narrow screens (products now
+   show their thumbnail inside the Name cell instead) ---- */
+.manager-table--orders th:first-child,
+.manager-table--orders td:first-child {
+  width: 140px;
+}
+
+.manager-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; }
+.manager-badge--active { background: #EEF2E5; color: #3E6B2E; }
+.manager-badge--inactive { background: var(--danger-soft); color: var(--danger); }
+
+.manager-row-actions { display: flex; gap: 12px; align-items: center; }
+.manager-link { color: var(--bramble); font-size: 13px; text-decoration: underline; }
+.manager-link-btn { background: none; border: none; padding: 0; font: inherit; font-size: 13px; color: var(--bramble); text-decoration: underline; cursor: pointer; }
+.manager-link-btn--danger { color: var(--danger); }
+.manager-row-actions form { margin: 0; }
+
+.manager-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; }
+.manager-search { display: flex; gap: 8px; }
+.manager-search input { padding: 10px 14px; border: 1px solid var(--hairline); border-radius: 8px; font: inherit; min-width: 240px; }
+
+/* ---- search input with the submit button anchored inside it ---- */
+.manager-search-inline { position: relative; display: flex; gap: 0; }
+.manager-search-inline input { width: 100%; padding-right: 44px; }
+.manager-search-btn {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  padding: 0;
+}
+.manager-search-btn svg { width: 16px; height: 16px; }
+.manager-search-btn:hover { background: var(--ivory); color: var(--ink); }
+.manager-search-btn:focus-visible { outline: 2px solid var(--bramble); outline-offset: 1px; }
+.manager-filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.manager-pill { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--hairline); font-size: 13px; color: var(--ink-soft); }
+.manager-pill.is-active { background: var(--ink); color: var(--ivory); border-color: var(--ink); }
+
+/* ---- toolbar filter select (dropdown, styled to match .manager-search input) ---- */
+.manager-filter-select { display: flex; }
+.manager-filter-select-nav {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding: 10px 36px 10px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  font: inherit;
+  min-width: 180px;
+  color: var(--ink);
+  background-color: var(--white);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238A8371' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+.manager-filter-select-nav:focus { outline: none; border-color: var(--bramble); }
+@media (max-width: 700px) {
+  .manager-filter-select-nav { width: 100%; min-width: 0; }
+}
+
+/* ---- icon-only row action buttons/links (view, edit, activate, delete) ---- */
+.manager-icon-link,
+.manager-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.manager-icon-link svg,
+.manager-icon-btn svg { width: 16px; height: 16px; display: block; }
+.manager-icon-link:hover,
+.manager-icon-btn:hover { background: var(--ivory); border-color: var(--stone); color: var(--ink); }
+.manager-icon-link:focus-visible,
+.manager-icon-btn:focus-visible { outline: 2px solid var(--bramble); outline-offset: 2px; }
+
+.manager-icon-btn--on { color: #3E6B2E; border-color: #D3E0C8; }
+.manager-icon-btn--on:hover { background: #EEF2E5; border-color: #3E6B2E; color: #3E6B2E; }
+.manager-icon-btn--off { color: var(--stone); }
+.manager-icon-btn--off:hover { background: var(--ivory); border-color: var(--ink-soft); color: var(--ink); }
+.manager-icon-btn--danger { color: var(--danger); }
+.manager-icon-btn--danger:hover { background: var(--danger-soft); border-color: var(--danger); }
+
+/* ---- visually hidden utility (accessible labels for icon-only controls) ---- */
+.manager-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.manager-empty { color: var(--stone); padding: 24px 0; }
+
+/* ---- manager list pagination ---------------------------------------- */
+.manager-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+}
+.manager-pagination-count { font-size: 13px; color: var(--stone); }
+.manager-pagination-links { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.manager-pagination-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+a.manager-pagination-link:hover { background: var(--ivory); color: var(--ink); }
+.manager-pagination-link.is-current { background: var(--ink); color: var(--ivory); font-weight: 600; }
+.manager-pagination-link.is-disabled { color: var(--hairline); }
+.manager-pagination-ellipsis { padding: 0 4px; color: var(--stone); }
+
+.manager-detail-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start; }
+.manager-deflist { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px; margin: 0 0 20px; }
+.manager-deflist dt { color: var(--stone); }
+.manager-deflist dd { margin: 0; }
+
+.manager-status-form { display: flex; gap: 10px; }
+.manager-status-form select { flex: 1; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: 8px; font: inherit; }
+
+.manager-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+.manager-field-span2 { grid-column: 1 / -1; color: var(--ink); }
+.manager-field-checkbox { display: flex; align-items: center; gap: 8px; }
+.manager-field-checkbox input { width: auto; }
+.manager-hint { font-size: 12px; color: var(--stone); margin: 4px 0 0; }
+.manager-current-image { width: 90px; height: 90px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+
+.manager-variant-row { display: grid; grid-template-columns: 2fr 1fr auto auto auto; gap: 12px; align-items: end; padding: 14px 0; border-bottom: 1px solid var(--hairline); }
+.manager-variant-row:last-child { border-bottom: none; }
+.manager-variant-row .field { margin-bottom: 0; }
+.manager-variant-row label { font-size: 12px; }
+
+.manager-form-actions { display: flex; gap: 12px; margin-top: 8px; }
+
+.manager-simple-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+
+@media (max-width: 860px) {
+  .manager-detail-grid { grid-template-columns: 1fr; }
+  .manager-form-grid { grid-template-columns: 1fr; }
+  .manager-variant-row { grid-template-columns: 1fr 1fr; }
+}
+/* ==========================================================================
+   Manager dashboard v2 - stat card icons, charts, order feed
+   (append this to the manager block already in style.css)
+   ========================================================================== */
+.manager-stat-card { display: flex; align-items: center; gap: 14px; }
+
+.manager-stat-icon {
+  width: 46px; height: 46px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.manager-stat-icon svg { width: 22px; height: 22px; }
+
+.manager-stat-card--blue .manager-stat-icon { background: #E4F1FB; color: #0F80C4; }
+.manager-stat-card--pink .manager-stat-icon { background: #F5E9F5; color: #A6529E; }
+.manager-stat-card--yellow .manager-stat-icon { background: #FBF3DC; color: #B8935A; }
+.manager-stat-card--orange .manager-stat-icon { background: #FBEAE0; color: #C06B3B; }
+
+.manager-dash-row { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; margin-bottom: 24px; align-items: start; }
+.manager-panel canvas { max-width: 100%; }
+
+.manager-order-feed { display: flex; flex-direction: column; gap: 14px; }
+.manager-order-feed-item { display: flex; align-items: center; gap: 12px; }
+.manager-order-feed-item .manager-thumb { width: 40px; height: 40px; }
+.manager-order-feed-item > div { flex: 1; min-width: 0; }
+.manager-order-feed-ref { font-size: 13px; font-weight: 500; }
+.manager-order-feed-name { font-size: 12px; color: var(--stone); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.manager-table-product { display: flex; align-items: center; gap: 10px; }
+
+@media (max-width: 960px) {
+  .manager-dash-row { grid-template-columns: 1fr; }
+}
+/* Independent spacing/width control for the two dashboard rows */
+.manager-dash-row--top { margin-bottom: 10px; }
+.manager-dash-row--bottom { grid-template-columns: 1fr 1.3fr; }
+
+@media (max-width: 960px) {
+  .manager-dash-row--bottom { grid-template-columns: 1fr; }
+}
+
+/* Equal-height cards within each dashboard row: chart card matches Recent
+   Orders' height, and Orders by Status matches Most Ordered Products' height.
+   align-items defaults to stretch once removed, so both grid cells take the
+   height of the taller one; the panel itself is a column flexbox so its
+   content (table/feed/chart) can grow to fill that height. */
+.manager-dash-row { align-items: stretch; }
+.manager-dash-row > .manager-panel { display: flex; flex-direction: column; height: 100%; margin-bottom: 0; }
+
+.manager-chart-wrap { position: relative; flex: 1; min-height: 220px; }
+.manager-chart-wrap canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+
+/* Dashboard-only: the shell's normal 100px bottom padding leaves a big
+   gap under the last row of cards here specifically, since this page's
+   content is short. Scoped to .manager-body--dashboard so other manager
+   pages (orders, products, categories) keep their usual spacing. */
+.manager-body--dashboard .manager-shell { padding-bottom: 10px; }
+.manager-dash-row--bottom { margin-bottom: 10px; }
+
+/* ---- dashboard: flow layout ---------------------------------------------
+   Sales Overview, Recent Orders, and Orders by Status live together in
+   .manager-dash-scroll so they can regroup into one horizontally-scrolling
+   row on mobile; Most Ordered Products stays a separate full-width block.
+   On larger screens .manager-dash-scroll dissolves (display: contents) and
+   all four panels are placed directly on the grid below via grid-area. */
+.manager-dash-flow {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-areas:
+    "sales   recent"
+    "mostord status";
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 10px;
+}
+.manager-dash-flow .manager-panel { display: flex; flex-direction: column; height: 100%; margin-bottom: 0; }
+.manager-dash-scroll { display: contents; }
+.manager-dash-panel--sales { grid-area: sales; }
+.manager-dash-panel--recent { grid-area: recent; }
+.manager-dash-panel--most-ordered { grid-area: mostord; }
+.manager-dash-panel--status { grid-area: status; }
+
+/* ==========================================================================
+   Manager: Reports
+   ========================================================================== */
+
+/* ---- toolbar: period pills + range navigator + custom date form -------- */
+.manager-report-toolbar { display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+
+.manager-range-nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.manager-range-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1px solid var(--hairline); background: var(--white); color: var(--ink);
+  cursor: pointer; transition: background .15s, border-color .15s;
+}
+.manager-range-btn svg { width: 16px; height: 16px; }
+.manager-range-btn:hover { background: var(--ivory); border-color: var(--ink); }
+.manager-range-btn:disabled,
+.manager-range-btn.is-disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+.manager-range-label { font-family: 'Fraunces', Georgia, serif; font-size: 17px; min-width: 180px; }
+.manager-range-compare { font-size: 12px; color: var(--stone); }
+
+.manager-range-today {
+  font-size: 12px; color: var(--bramble); text-decoration: underline;
+  margin-left: 4px; white-space: nowrap;
+}
+
+.manager-btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ink);
+  background: transparent; color: var(--ink); font: inherit; font-size: 13px;
+  cursor: pointer; text-decoration: none; transition: background .15s, color .15s;
+}
+.manager-btn-outline:hover { background: var(--ink); color: var(--ivory); }
+.manager-btn-outline svg { width: 15px; height: 15px; }
+
+/* ---- download dropdown (Export CSV / PDF) ------------------------------- */
+.manager-download-dropdown { position: relative; }
+.manager-download-dropdown > summary.manager-btn-outline {
+  list-style: none;
+  justify-content: center;
+}
+.manager-download-dropdown > summary.manager-btn-outline::-webkit-details-marker { display: none; }
+.manager-download-dropdown > summary.manager-btn-outline::marker { content: ""; }
+.manager-download-chevron { transition: transform .15s; margin-left: -2px; }
+.manager-download-dropdown[open] .manager-download-chevron { transform: rotate(180deg); }
+
+.manager-download-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+  min-width: 220px; background: var(--white); border: 1px solid var(--hairline);
+  border-radius: 10px; box-shadow: 0 10px 28px rgba(28, 27, 23, 0.12);
+  padding: 6px; display: flex; flex-direction: column; gap: 2px;
+}
+.manager-download-menu a {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 10px; border-radius: 7px;
+  color: var(--ink); text-decoration: none; transition: background .15s;
+}
+.manager-download-menu a:hover { background: var(--ivory); }
+.manager-download-menu svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; color: var(--stone); }
+.manager-download-menu span { display: flex; flex-direction: column; gap: 1px; }
+.manager-download-menu span small { font-size: 11px; color: var(--stone); font-weight: 400; }
+.manager-download-menu a span { font-size: 13px; font-weight: 500; }
+
+@media (max-width: 640px) {
+  .manager-download-menu { right: 0; left: auto; min-width: 200px; }
+}
+
+.manager-custom-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.manager-custom-form-field { display: flex; flex-direction: column; gap: 4px; }
+.manager-custom-form-field label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--stone); }
+.manager-custom-form input[type="date"] {
+  padding: 9px 12px; border: 1px solid var(--hairline); border-radius: 8px;
+  font: inherit; font-size: 13px; background: var(--white); color: var(--ink);
+}
+.manager-custom-form input[type="date"]:focus { outline: none; border-color: var(--bramble); }
+
+/* ---- KPI delta badges ---------------------------------------------------- */
+.manager-kpi-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 600; margin-top: 6px;
+}
+.manager-kpi-delta svg { width: 12px; height: 12px; }
+.manager-kpi-delta--up { color: #3E6B2E; }
+.manager-kpi-delta--down { color: var(--danger); }
+.manager-kpi-delta--flat { color: var(--stone); font-weight: 500; }
+.manager-kpi-delta--new { color: var(--bramble); }
+.manager-kpi-compare { display: block; font-size: 11px; color: var(--stone); font-weight: 400; margin-top: 2px; }
+
+/* ---- category revenue rows: name + mini share bar + amount ------------- */
+.manager-category-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
+.manager-category-row:last-child { border-bottom: none; }
+.manager-category-name { flex: 0 0 120px; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.manager-category-bar-track { flex: 1; height: 8px; border-radius: 999px; background: var(--ivory); overflow: hidden; }
+.manager-category-bar-fill { height: 100%; border-radius: 999px; background: var(--bramble); }
+.manager-category-amount { flex: 0 0 auto; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+/* ---- delivery status mini stats ----------------------------------------- */
+.manager-delivery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.manager-delivery-stat { border: 1px solid var(--hairline); border-radius: 10px; padding: 12px 14px; text-align: center; }
+.manager-delivery-stat-value { font-family: 'Fraunces', Georgia, serif; font-size: 22px; }
+.manager-delivery-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--stone); margin-top: 4px; }
+
+/* ---- report toolbar: period select + range nav / custom form, one row --- */
+.manager-report-filters-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+/* ---- report: flow layout -------------------------------------------------
+   Revenue Trend, Orders by Payment Status, and Top Products live together
+   in .manager-report-scroll so they can regroup into one horizontally-
+   scrolling row on mobile; Revenue by Category stays a separate full-width
+   block. On larger screens .manager-report-scroll dissolves (display:
+   contents) and all four panels are placed directly on the grid via
+   grid-area. */
+.manager-report-flow {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-areas:
+    "trend       status"
+    "topproducts category";
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+.manager-report-flow .manager-panel { display: flex; flex-direction: column; height: 100%; margin-bottom: 0; }
+.manager-report-scroll { display: contents; }
+.manager-report-panel--trend { grid-area: trend; }
+.manager-report-panel--status { grid-area: status; }
+.manager-report-panel--topproducts { grid-area: topproducts; }
+.manager-report-panel--category { grid-area: category; }
+
+@media (max-width: 860px) {
+  .manager-range-nav { justify-content: space-between; }
+  .manager-category-name { flex-basis: 90px; }
+}
+
+/* ==========================================================================
+   Manager: clickable cards, panels & rows
+   ========================================================================== */
+
+/* ---- stat cards (dashboard totals + report KPIs) ------------------------ */
+a.manager-stat-card,
+a.manager-stat-card:visited {
+  text-decoration: none;
+  color: inherit;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+a.manager-stat-card:hover,
+a.manager-stat-card:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--bramble);
+}
+a.manager-stat-card:focus-visible { outline: 2px solid var(--bramble); outline-offset: 2px; }
+
+/* ---- recent-order feed items --------------------------------------------- */
+a.manager-order-feed-item,
+a.manager-order-feed-item:visited {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  padding: 6px;
+  margin: -6px;
+  transition: background .15s ease;
+}
+a.manager-order-feed-item:hover,
+a.manager-order-feed-item:focus-visible {
+  background: var(--ivory);
+}
+a.manager-order-feed-item:focus-visible { outline: 2px solid var(--bramble); outline-offset: 2px; }
+
+/* ---- clickable table rows (products, orders, most/top ordered) ---------- */
+.manager-table tbody tr[data-href] { cursor: pointer; }
+.manager-table tbody tr[data-href]:hover { background: var(--ivory); }
+.manager-table tbody tr[data-href]:focus-visible {
+  outline: 2px solid var(--bramble);
+  outline-offset: -2px;
+}
+/* row actions (links/buttons/forms) stay clickable in their own right and
+   shouldn't visually look like part of the row-level navigation target */
+.manager-table tbody tr[data-href] .manager-row-actions,
+.manager-table tbody tr[data-href] a,
+.manager-table tbody tr[data-href] button {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- chart click affordance ---------------------------------------------- */
+.manager-panel canvas { cursor: pointer; }
+.manager-chart-hint {
+  font-size: 12px;
+  color: var(--stone);
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+/* ---- revenue-by-category rows (report), when linkable -------------------- */
+a.manager-category-row,
+a.manager-category-row:visited {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  transition: background .15s ease;
+}
+a.manager-category-row:hover,
+a.manager-category-row:focus-visible {
+  background: var(--ivory);
+}
+a.manager-category-row:focus-visible { outline: 2px solid var(--bramble); outline-offset: 2px; }
+
+/* ---- horizontally-scrolling tables (mobile) ------------------------------ */
+.manager-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.manager-table-wrap .manager-table { min-width: 560px; }
+
+/* ==========================================================================
+   Manager: responsiveness
+   ========================================================================== */
+@media (max-width: 700px) {
+  .manager-stat-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .manager-stat-card { padding: 14px 16px; gap: 10px; }
+  .manager-stat-icon { width: 38px; height: 38px; }
+  .manager-stat-icon svg { width: 18px; height: 18px; }
+  .manager-stat-value { font-size: 21px; }
+
+  .manager-panel { padding: 16px; }
+  .manager-chart-wrap { min-height: 200px; }
+
+  .manager-toolbar { flex-direction: column; align-items: stretch; }
+  .manager-search { flex-direction: column; }
+  .manager-search input { min-width: 0; width: 100%; }
+
+  /* ---- header row: title stays alongside a search bar living in
+     manager_actions (e.g. Orders), instead of wrapping to its own line ---- */
+  .manager-main-header { flex-wrap: nowrap; gap: 10px; }
+  .manager-main-header h1 { font-size: 20px; flex-shrink: 0; }
+  .manager-main-header .manager-search-inline { flex: 1 1 auto; min-width: 0; }
+  .manager-main-header .manager-search-inline input { min-width: 0; width: 100%; }
+
+  /* ---- toolbar variant: search + filter select share one row instead
+     of stacking (e.g. Products) ---- */
+  .manager-toolbar--row { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; }
+  .manager-toolbar--row .manager-search-inline { flex: 1 1 auto; min-width: 0; }
+  .manager-toolbar--row .manager-filter-select { flex: 0 0 auto; }
+  .manager-toolbar--row .manager-filter-select-nav {
+    width: auto;
+    min-width: 0;
+    max-width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .manager-status-form { flex-direction: column; align-items: stretch; }
+  .manager-custom-form { flex-direction: column; align-items: stretch; }
+  .manager-custom-form-field { width: 100%; }
+  .manager-custom-form input[type="date"] { width: 100%; }
+
+  .manager-range-nav { justify-content: space-between; }
+  .manager-range-label { min-width: 0; text-align: center; }
+
+  .manager-report-toolbar .manager-btn-outline,
+  .manager-main-header .manager-btn-outline { width: auto; }
+
+  /* ---- report filters: select + range nav/custom form share one row ---- */
+  .manager-report-filters-row { gap: 10px; }
+  .manager-report-filters-row .manager-filter-select-nav { width: auto; min-width: 0; flex: 0 1 auto; }
+  .manager-report-filters-row .manager-range-nav,
+  .manager-report-filters-row .manager-custom-form { flex: 1 1 auto; }
+
+  /* ---- dashboard & report: horizontally-scrolling card row -------------- */
+  .manager-dash-flow,
+  .manager-report-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .manager-dash-scroll,
+  .manager-report-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    scroll-snap-type: x proximity;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .manager-dash-scroll .manager-panel,
+  .manager-report-scroll .manager-panel {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+    min-width: 250px;
+    height: auto;
+  }
+  .manager-dash-flow .manager-panel,
+  .manager-report-flow .manager-panel { height: auto; }
+}
+
+@media (max-width: 480px) {
+  .manager-order-feed-name { max-width: 45vw; }
+}
+
+
+/* ==========================================================================
+   Manager: mobile hamburger sidebar (phone widths)
+   ========================================================================== */
+
+/* fixed header shown only on phones; holds the brand + hamburger button
+   since the sidebar itself lives off-screen until opened */
+.manager-mobile-bar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: var(--white);
+  border-bottom: 1px solid var(--hairline);
+  z-index: 40;
+}
+.manager-mobile-bar-brand { font-family: 'Fraunces', Georgia, serif; font-size: 17px; }
+
+.manager-mobile-nav-toggle {
+  appearance: none;
+  border: none;
+  background: transparent;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.manager-mobile-nav-toggle span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+  transition: transform .2s ease, opacity .2s ease, width .2s ease;
+}
+.manager-mobile-nav-toggle span:nth-child(1) { width: 22px; }
+.manager-mobile-nav-toggle span:nth-child(2) { width: 16px; }
+.manager-mobile-nav-toggle span:nth-child(3) { width: 22px; }
+.manager-mobile-nav-toggle:hover span { width: 22px; }
+
+/* hamburger -> X once the panel is open */
+.manager-shell-inner.is-mobile-nav-open .manager-mobile-nav-toggle span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.manager-shell-inner.is-mobile-nav-open .manager-mobile-nav-toggle span:nth-child(2) { opacity: 0; }
+.manager-shell-inner.is-mobile-nav-open .manager-mobile-nav-toggle span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.manager-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 22, 18, 0.45);
+  z-index: 41;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.manager-shell-inner.is-mobile-nav-open .manager-nav-backdrop { opacity: 1; }
+
+body.manager-mobile-nav-locked { overflow: hidden; }
+
+@media (max-width: 700px) {
+  .manager-mobile-bar { display: flex; }
+  .manager-shell { padding: 76px 0 40px; }
+
+  /* the sidebar becomes a right-hand off-canvas drawer instead of the
+     horizontal scrolling bar used at tablet widths */
+  .manager-nav {
+    position: fixed;
+    top: 0; right: 0; left: auto; bottom: 0;
+    width: min(280px, 82vw);
+    height: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-right: none;
+    border-left: 1px solid var(--hairline);
+    border-bottom: none;
+    padding: 20px 16px;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 42;
+    box-shadow: -12px 0 32px rgba(0, 0, 0, 0.12);
+  }
+  .manager-shell-inner.is-mobile-nav-open .manager-nav { transform: translateX(0); }
+  .manager-shell-inner.is-nav-expanded .manager-nav { width: min(280px, 82vw); }
+
+  /* the desktop expand/collapse row (brand + toggle) is redundant with
+     the fixed mobile header above, so it's hidden here */
+  .manager-nav-top { display: none; }
+
+  .manager-nav nav { flex-direction: column; gap: 4px; }
+  .manager-nav-foot {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 16px;
+    margin-left: 0;
+    border-top: 1px solid var(--hairline);
+    padding-top: 16px;
+  }
+
+  /* The desktop "collapsed rail" rules (icons only, centred) are scoped to
+     .manager-shell-inner:not(.is-nav-expanded) and are more specific than a
+     plain .manager-nav-link/.manager-nav-label rule, so they'd otherwise
+     win here even though the drawer is fully open. Match that same
+     selector shape to override it and always show full labels + left-
+     aligned rows inside the mobile drawer. */
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-label,
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-brand,
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-profile-info {
+    display: inline;
+  }
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-profile-info { display: flex !important; }
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-link { justify-content: flex-start; }
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-top { justify-content: flex-start; }
+  .manager-shell-inner:not(.is-nav-expanded) .manager-nav-profile { justify-content: flex-start; }
+
+  .manager-main,
+  .manager-shell-inner.is-nav-expanded .manager-main { margin-left: 0; margin-top: 0; }
+}

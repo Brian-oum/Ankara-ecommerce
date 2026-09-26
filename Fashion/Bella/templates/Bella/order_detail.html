@@ -1,0 +1,93 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Order {{ order.order_reference }} — Manager{% endblock %}
+{% block manager_title %}Order {{ order.order_reference }}{% endblock %}
+
+{% block manager_content %}
+<div class="manager-detail-grid">
+  <div>
+    <div class="manager-panel">
+      <h2>Items</h2>
+      <div class="manager-table-wrap">
+      <table class="manager-table">
+        <thead><tr><th>Product</th><th>Colour</th><th>Custom request</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr></thead>
+        <tbody>
+          {% for item in order.items.all %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td>
+                {% if item.colour_name %}
+                  <span class="manager-colour-dot" style="background: {{ item.colour_hex }};" title="{{ item.colour_name }}"></span>
+                  {{ item.colour_name }}
+                {% else %}
+                  <span class="manager-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.custom_request %}
+                  {{ item.custom_request }}
+                {% else %}
+                  <span class="manager-muted">—</span>
+                {% endif %}
+              </td>
+              <td>{{ item.quantity }}</td>
+              <td>KES {{ item.price|floatformat:0 }}</td>
+              <td>KES {{ item.subtotal|floatformat:0 }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr><td colspan="5">Subtotal</td><td>KES {{ order.subtotal_amount|floatformat:0 }}</td></tr>
+          <tr><td colspan="5">Delivery{% if order.delivery_area %} ({{ order.delivery_area }}){% endif %}</td><td>KES {{ order.shipping_fee|floatformat:0 }}</td></tr>
+          <tr><td colspan="5">VAT</td><td>KES {{ order.vat_amount|floatformat:0 }}</td></tr>
+          <tr><td colspan="5"><strong>Total</strong></td><td><strong>KES {{ order.total_amount|floatformat:0 }}</strong></td></tr>
+        </tfoot>
+      </table>
+      </div>
+    </div>
+
+    <div class="manager-panel">
+      <h2>Update Status</h2>
+      <form method="post" action="{% url 'manager_order_update_status' order.order_reference %}" class="manager-status-form">
+        {% csrf_token %}
+        <select name="status">
+          {% for value, label in order.STATUS_CHOICES %}
+            <option value="{{ value }}"{% if order.status == value %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn">Save</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="manager-panel">
+      <h2>Customer</h2>
+      <dl class="manager-deflist">
+        <dt>Name</dt><dd>{{ order.name }}</dd>
+        <dt>Email</dt><dd>{{ order.email }}</dd>
+        <dt>Phone</dt><dd>{{ order.phone }}</dd>
+        <dt>Account</dt><dd>{% if order.user %}{{ order.user.email }}{% else %}Guest checkout{% endif %}</dd>
+        <dt>Placed</dt><dd>{{ order.created_at|date:"j M Y, g:i A" }}</dd>
+        {% if order.delivery_area %}<dt>Delivery area</dt><dd>{{ order.delivery_area }}{% if order.delivery_zone %} — {{ order.delivery_zone }}{% endif %}</dd>{% endif %}
+        {% if order.delivery_address %}<dt>Pin dropped</dt><dd>{{ order.delivery_address }}</dd>{% endif %}
+        {% if order.delivery_notes %}<dt>Delivery notes</dt><dd>{{ order.delivery_notes }}</dd>{% endif %}
+        {% if order.delivery_lat and order.delivery_lng %}
+          <dt>Map</dt>
+          <dd><a href="https://www.google.com/maps/search/?api=1&query={{ order.delivery_lat }},{{ order.delivery_lng }}" target="_blank" rel="noopener">Open location in Google Maps</a></dd>
+        {% endif %}
+      </dl>
+
+      {% if order.payment %}
+        <h2>Payment</h2>
+        <dl class="manager-deflist">
+          <dt>Reference</dt><dd>{{ order.payment.payment_reference }}</dd>
+          <dt>Status</dt><dd>{{ order.payment.status }}</dd>
+          <dt>Telco ref</dt><dd>{{ order.payment.telco_reference|default:"—" }}</dd>
+        </dl>
+      {% endif %}
+
+      <a href="{{ order.get_admin_reply_whatsapp_link }}" target="_blank" rel="noopener" class="btn btn-outline">Message customer on WhatsApp</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

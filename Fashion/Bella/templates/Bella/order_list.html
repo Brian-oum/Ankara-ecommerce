@@ -1,0 +1,71 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Orders — Manager{% endblock %}
+{% block manager_title %}Orders{% endblock %}
+{% block manager_actions %}
+<form method="get" class="manager-search manager-search-inline">
+  <input type="text" name="q" value="{{ query }}" placeholder="Search reference, name, email, phone">
+  {% if active_status %}<input type="hidden" name="status" value="{{ active_status }}">{% endif %}
+  <button type="submit" class="manager-search-btn" aria-label="Search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+  </button>
+</form>
+{% endblock %}
+
+{% block manager_content %}
+<div class="manager-toolbar">
+  <div class="manager-filter-select">
+    <label for="orderStatusFilter" class="manager-visually-hidden">Filter by status</label>
+    <select id="orderStatusFilter" class="manager-filter-select-nav" onchange="if (this.value) window.location.href = this.value;">
+      <option value="{% url 'manager_order_list' %}{% if query %}?q={{ query }}{% endif %}"{% if not active_status %} selected{% endif %}>All Orders</option>
+      <option value="?status=Pending{% if query %}&q={{ query }}{% endif %}"{% if active_status == 'Pending' %} selected{% endif %}>Pending</option>
+      <option value="?status=Completed{% if query %}&q={{ query }}{% endif %}"{% if active_status == 'Completed' %} selected{% endif %}>Completed</option>
+      <option value="?status=Failed{% if query %}&q={{ query }}{% endif %}"{% if active_status == 'Failed' %} selected{% endif %}>Failed</option>
+    </select>
+  </div>
+</div>
+
+{% if orders %}
+  <div class="manager-table-wrap">
+  <table class="manager-table manager-table--orders">
+    <thead>
+      <tr><th></th><th>Reference</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Placed</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+        <tr data-href="{% url 'manager_order_detail' order.order_reference %}" tabindex="0">
+          <td>
+            <div class="manager-order-thumbs">
+              {% for item in order.items.all|slice:":3" %}
+                {% if item.product.image %}
+                  <img src="{{ item.product.image.url }}" alt="" class="manager-order-thumb" title="{{ item.product.name }}">
+                {% else %}
+                  <span class="manager-order-thumb manager-order-thumb--empty" title="{{ item.product.name }}"></span>
+                {% endif %}
+              {% endfor %}
+              {% if order.items.all|length > 3 %}
+                <span class="manager-order-thumb-more">+{{ order.items.all|length|add:"-3" }}</span>
+              {% endif %}
+            </div>
+          </td>
+          <td>{{ order.order_reference }}</td>
+          <td>{{ order.name }}<br><span class="manager-muted">{{ order.email }}</span></td>
+          <td>{{ order.items.all|length }}</td>
+          <td>KES {{ order.total_amount|floatformat:0 }}</td>
+          <td><span class="order-status order-status--{{ order.status|lower }}">{{ order.status }}</span></td>
+          <td>{{ order.created_at|date:"j M Y" }}</td>
+          <td>
+            <a href="{% url 'manager_order_detail' order.order_reference %}" class="manager-icon-link" aria-label="View order {{ order.order_reference }}" title="View">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% include "Bella/_manager_pagination.html" %}
+{% else %}
+  <p class="manager-empty">No orders match.</p>
+{% endif %}
+{% endblock %}

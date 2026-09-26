@@ -1,0 +1,363 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+  data-theme carries the manager's raw preference: light / dark / system
+  (falls back to "light" for a manager with no ManagerProfile yet, or
+  anyone not logged in as a manager). Set server-side so there's no
+  flash on load for "light" and "dark" - only "system" needs the inline
+  script below to resolve to the OS preference before first paint.
+{% endcomment %}
+<html lang="en" data-theme="{{ request.user.manager_profile.theme_preference|default:'light' }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="{% block robots %}noindex, nofollow{% endblock %}">
+  <title>{% block title %}Manager — Etsirbella Designs{% endblock %}</title>
+
+  <script>
+    // Resolves data-theme -> data-theme-resolved (always "light" or
+    // "dark") before the CSS below paints anything, so there's no
+    // flash of the wrong theme - including for "system", which reads
+    // the OS preference live and keeps it in sync if that changes
+    // while this tab is open.
+    (function () {
+      var root = document.documentElement;
+      function resolve() {
+        var pref = root.getAttribute('data-theme') || 'light';
+        var resolved = pref === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : pref;
+        root.setAttribute('data-theme-resolved', resolved);
+      }
+      resolve();
+      if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', resolve);
+      }
+      window.__managerThemeResolve = resolve;
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  {# Adjust this path if your static css doesn't live at Bella/css/style.css #}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/manager-theme.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="manager-body {% block body_class %}{% endblock %}">
+
+<section class="manager-shell">
+  <div class="manager-mobile-bar">
+    <span class="manager-mobile-bar-brand">Manager</span>
+    <button type="button" class="manager-mobile-nav-toggle" id="managerMobileNavToggle"
+            aria-label="Open navigation" aria-expanded="false" aria-controls="managerNav">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="manager-nav-backdrop" id="managerNavBackdrop" hidden></div>
+
+  <div class="container manager-shell-inner">
+    <aside class="manager-nav" id="managerNav">
+
+      <div class="manager-nav-top">
+        <button type="button" class="manager-nav-toggle" id="managerNavToggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="managerNav">
+          <span class="manager-nav-toggle-line manager-nav-toggle-line--long"></span>
+          <span class="manager-nav-toggle-line manager-nav-toggle-line--short"></span>
+          <span class="manager-nav-toggle-line manager-nav-toggle-line--long"></span>
+        </button>
+        <span class="manager-nav-brand">Manager</span>
+      </div>
+      
+      <div class="manager-nav-profile">
+        <div class="manager-nav-avatar">
+          <img
+            src="{% if request.user.manager_profile.photo %}{{ request.user.manager_profile.photo.url }}{% else %}{% static 'images/logo-mark.png' %}{% endif %}"
+            alt="Profile photo" class="manager-nav-avatar-img" id="managerAvatarPreview">
+          <label for="managerAvatarInput" class="manager-nav-avatar-edit" title="Change photo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </label>
+          <form id="managerAvatarForm">
+            {% csrf_token %}
+            <input type="file" id="managerAvatarInput" name="photo" accept="image/*" class="manager-nav-avatar-input" hidden>
+          </form>
+        </div>
+        <div class="manager-nav-profile-info">
+          <span class="manager-nav-profile-name">{{ request.user.get_full_name|default:request.user.email }}</span>
+          <span class="manager-nav-profile-email">{{ request.user.email }}</span>
+        </div>
+      </div>
+
+      <nav>
+        <a href="{% url 'manager_dashboard' %}" class="manager-nav-link{% if active_nav == 'dashboard' %} is-active{% endif %}" title="Dashboard">
+          <span class="manager-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          </span>
+          <span class="manager-nav-label">Dashboard</span>
+        </a>
+        <a href="{% url 'manager_order_list' %}" class="manager-nav-link{% if active_nav == 'orders' %} is-active{% endif %}" title="Orders">
+          <span class="manager-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l3 3v17H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+          </span>
+          <span class="manager-nav-label">Orders</span>
+        </a>
+        <a href="{% url 'manager_product_list' %}" class="manager-nav-link{% if active_nav == 'products' %} is-active{% endif %}" title="Products">
+          <span class="manager-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+          </span>
+          <span class="manager-nav-label">Products</span>
+        </a>
+        <a href="{% url 'manager_category_list' %}" class="manager-nav-link{% if active_nav == 'categories' %} is-active{% endif %}" title="Categories">
+          <span class="manager-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/></svg>
+          </span>
+          <span class="manager-nav-label">Categories</span>
+        </a>
+        <a href="{% url 'manager_reports' %}" class="manager-nav-link{% if active_nav == 'reports' %} is-active{% endif %}" title="Reports">
+          <span class="manager-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-8"/></svg>
+          </span>
+          <span class="manager-nav-label">Reports</span>
+        </a>
+      </nav>
+
+      {# Adjust 'manager_settings' if the settings view is named differently #}
+      <div class="manager-nav-foot">
+        <button type="button" class="manager-nav-link manager-nav-theme-toggle" id="managerThemeToggle" title="Change theme">
+          <span class="manager-nav-icon">
+            <svg class="manager-nav-theme-toggle-icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg class="manager-nav-theme-toggle-icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+            <svg class="manager-nav-theme-toggle-icon-system" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </span>
+          <span class="manager-nav-label" id="managerThemeToggleLabel">Light</span>
+        </button>
+        <form id="managerThemeForm" hidden>{% csrf_token %}</form>
+
+        <a href="{% url 'manager_settings' %}" class="manager-nav-link{% if active_nav == 'settings' %} is-active{% endif %}" title="Settings">
+          <span class="manager-nav-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          </span>
+          <span class="manager-nav-label">Settings</span>
+        </a>
+        <form action="{% url 'logout' %}" method="post" class="manager-nav-logout-form">
+          {% csrf_token %}
+          <button type="submit" class="manager-nav-link manager-nav-link--logout" title="Sign out">
+            <span class="manager-nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            </span>
+            <span class="manager-nav-label">Sign out</span>
+          </button>
+        </form>
+      </div>
+    </aside>
+
+    <div class="manager-main">
+      <div class="manager-main-header">
+        <h1>{% block manager_title %}Dashboard{% endblock %}</h1>
+        {% block manager_actions %}{% endblock %}
+      </div>
+
+      {% if messages %}
+        <div class="manager-messages">
+          {% for message in messages %}
+            <div class="manager-message manager-message--{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block manager_content %}{% endblock %}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Clickable table rows — any <tr data-href="..."> becomes a link to that
+  // URL. Clicks (and Enter/Space while focused) that land on a link, button,
+  // form control, or form inside the row are left alone so existing row
+  // actions (View, Edit, Deactivate, Delete, status selects) keep working.
+  (function () {
+    function isInteractive(target) {
+      return !!target.closest('a, button, input, select, textarea, label, form');
+    }
+
+    document.addEventListener('click', function (event) {
+      var row = event.target.closest('tr[data-href]');
+      if (!row || isInteractive(event.target)) return;
+      window.location.href = row.getAttribute('data-href');
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      var row = event.target.closest('tr[data-href]');
+      if (!row || isInteractive(event.target)) return;
+      event.preventDefault();
+      window.location.href = row.getAttribute('data-href');
+    });
+  })();
+
+  // Filter dropdowns (status, category, etc.) — each <option> carries the
+  // destination URL/querystring directly, so picking one just navigates
+  // there. No-op on pages that don't have one.
+  (function () {
+    document.querySelectorAll('.manager-filter-select-nav').forEach(function (select) {
+      select.addEventListener('change', function () {
+        if (this.value) window.location.href = this.value;
+      });
+    });
+  })();
+
+  // Mobile hamburger nav — on phone widths the sidebar lives off-screen to
+  // the right; the hamburger button slides it in over a dimmed backdrop.
+  // Picking a link/button inside it, tapping the backdrop, or pressing Esc
+  // all close it again. No-ops harmlessly above the phone breakpoint since
+  // the toggle button and backdrop are hidden there by CSS.
+  (function () {
+    var shellInner = document.querySelector('.manager-shell-inner');
+    var mobileToggle = document.getElementById('managerMobileNavToggle');
+    var backdrop = document.getElementById('managerNavBackdrop');
+    var nav = document.getElementById('managerNav');
+    if (!shellInner || !mobileToggle || !backdrop || !nav) return;
+
+    function isPhoneWidth() {
+      return window.matchMedia('(max-width: 700px)').matches;
+    }
+
+    function openMobileNav() {
+      shellInner.classList.add('is-mobile-nav-open');
+      mobileToggle.setAttribute('aria-expanded', 'true');
+      backdrop.hidden = false;
+      document.body.classList.add('manager-mobile-nav-locked');
+    }
+
+    function closeMobileNav() {
+      shellInner.classList.remove('is-mobile-nav-open');
+      mobileToggle.setAttribute('aria-expanded', 'false');
+      backdrop.hidden = true;
+      document.body.classList.remove('manager-mobile-nav-locked');
+    }
+
+    mobileToggle.addEventListener('click', function () {
+      if (shellInner.classList.contains('is-mobile-nav-open')) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
+      }
+    });
+
+    backdrop.addEventListener('click', closeMobileNav);
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeMobileNav();
+    });
+
+    nav.querySelectorAll('a, button').forEach(function (control) {
+      control.addEventListener('click', function () {
+        if (isPhoneWidth()) closeMobileNav();
+      });
+    });
+
+    // Resizing past the phone breakpoint (e.g. rotating to landscape,
+    // or a desktop window being narrowed then widened) shouldn't leave
+    // the panel stuck open with a stale backdrop/scroll lock.
+    window.addEventListener('resize', function () {
+      if (!isPhoneWidth()) closeMobileNav();
+    });
+  })();
+
+  // Sidebar expand/collapse — collapsed (icons only) by default on every
+  // load; the toggle just flips a class, it doesn't persist across pages.
+  (function () {
+    var shellInner = document.querySelector('.manager-shell-inner');
+    var toggle = document.getElementById('managerNavToggle');
+    if (!shellInner || !toggle) return;
+
+    toggle.addEventListener('click', function () {
+      var expanded = shellInner.classList.toggle('is-nav-expanded');
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+  })();
+
+  // Quick theme toggle — cycles Light -> Dark -> Match system on click,
+  // applies it instantly (no reload), and saves it in the background so
+  // it's remembered on this manager's next visit or device.
+  (function () {
+    var button = document.getElementById('managerThemeToggle');
+    var label = document.getElementById('managerThemeToggleLabel');
+    var csrfInput = document.querySelector('#managerThemeForm [name=csrfmiddlewaretoken]');
+    if (!button || !label) return;
+
+    var ORDER = ['light', 'dark', 'system'];
+    var LABELS = { light: 'Light', dark: 'Dark', system: 'System' };
+
+    function setLabel() {
+      var current = document.documentElement.getAttribute('data-theme') || 'light';
+      label.textContent = LABELS[current] || 'Light';
+    }
+    setLabel();
+
+    button.addEventListener('click', function () {
+      var root = document.documentElement;
+      var current = root.getAttribute('data-theme') || 'light';
+      var next = ORDER[(ORDER.indexOf(current) + 1) % ORDER.length];
+
+      root.setAttribute('data-theme', next);
+      if (window.__managerThemeResolve) window.__managerThemeResolve();
+      setLabel();
+
+      var formData = new FormData();
+      formData.append('theme', next);
+
+      fetch("{% url 'manager_update_theme' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfInput ? csrfInput.value : '' },
+        body: formData,
+      }).catch(function () {
+        // Applied locally regardless - worst case it doesn't persist
+        // to the next session, so no need to roll the UI back here.
+      });
+    });
+  })();
+
+  // Profile photo picker — previews the chosen file immediately, then
+  // uploads it in the background so it's saved no matter which manager
+  // page you're on when you pick it.
+  (function () {
+    var input = document.getElementById('managerAvatarInput');
+    var preview = document.getElementById('managerAvatarPreview');
+    var csrfInput = document.querySelector('#managerAvatarForm [name=csrfmiddlewaretoken]');
+    if (!input || !preview) return;
+
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+
+      var previousSrc = preview.src;
+      preview.src = URL.createObjectURL(file);
+
+      var formData = new FormData();
+      formData.append('photo', file);
+
+      fetch("{% url 'manager_update_avatar' %}", {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfInput ? csrfInput.value : '' },
+        body: formData,
+      })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+          if (data.success) {
+            preview.src = data.url;
+          } else {
+            preview.src = previousSrc;
+          }
+        })
+        .catch(function () {
+          preview.src = previousSrc;
+        });
+    });
+  })();
+</script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

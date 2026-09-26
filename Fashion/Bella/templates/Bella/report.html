@@ -1,0 +1,323 @@
+{% extends "Bella/manager_base.html" %}
+{% block title %}Reports — Etsirbella Designs{% endblock %}
+{% block manager_title %}Reports{% endblock %}
+{% block body_class %}manager-body--reports{% endblock %}
+
+{% block manager_actions %}
+  <details class="manager-download-dropdown">
+    <summary class="manager-btn-outline">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      Download Report
+      <svg class="manager-download-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </summary>
+    <div class="manager-download-menu">
+      <a href="?{{ csv_export_querystring }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+        <span>
+          Export as CSV
+          <small>Raw order data</small>
+        </span>
+      </a>
+      <a href="?{{ pdf_export_querystring }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+        <span>
+          Export as PDF
+          <small>Formatted summary report</small>
+        </span>
+      </a>
+    </div>
+  </details>
+{% endblock %}
+
+{% block manager_content %}
+
+<div class="manager-report-toolbar">
+  <div class="manager-report-filters-row">
+    <label for="reportPeriodFilter" class="manager-visually-hidden">Filter by period</label>
+    <select id="reportPeriodFilter" class="manager-filter-select-nav" onchange="if (this.value) window.location.href = this.value;">
+      <option value="?period=daily"{% if period == 'daily' %} selected{% endif %}>Daily</option>
+      <option value="?period=weekly"{% if period == 'weekly' %} selected{% endif %}>Weekly</option>
+      <option value="?period=monthly"{% if period == 'monthly' %} selected{% endif %}>Monthly</option>
+      <option value="?period=yearly"{% if period == 'yearly' %} selected{% endif %}>Yearly</option>
+      <option value="?period=custom&start={{ start_param }}&end={{ end_param }}"{% if period == 'custom' %} selected{% endif %}>Custom</option>
+    </select>
+
+    {% if period == 'custom' %}
+      <form method="get" class="manager-custom-form">
+        <input type="hidden" name="period" value="custom">
+        <div class="manager-custom-form-field">
+          <label for="reportStart">From</label>
+          <input type="date" id="reportStart" name="start" value="{{ start_param }}" max="{{ today }}">
+        </div>
+        <div class="manager-custom-form-field">
+          <label for="reportEnd">To</label>
+          <input type="date" id="reportEnd" name="end" value="{{ end_param }}" max="{{ today }}">
+        </div>
+        <button type="submit" class="manager-btn-outline" style="align-self: flex-end;">Apply</button>
+      </form>
+    {% else %}
+      <div class="manager-range-nav">
+        <a href="?period={{ period }}&offset={{ offset|add:"-1" }}" class="manager-range-btn" title="Previous {{ period }}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </a>
+        <div>
+          <div class="manager-range-label">{{ bounds.label }}</div>
+          <div class="manager-range-compare">{{ bounds.compare_label }}</div>
+        </div>
+        {% if bounds.can_go_next %}
+          <a href="?period={{ period }}&offset={{ offset|add:"1" }}" class="manager-range-btn" title="Next {{ period }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </a>
+        {% else %}
+          <span class="manager-range-btn is-disabled">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </span>
+        {% endif %}
+        {% if offset != 0 %}
+          <a href="?period={{ period }}&offset=0" class="manager-range-today">Jump to current</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if period == 'custom' %}
+    <p class="manager-range-compare">{{ bounds.label }} · {{ bounds.compare_label }}</p>
+  {% endif %}
+</div>
+
+<div class="manager-stat-grid">
+  {% for kpi in kpis %}
+    <div class="manager-stat-card manager-stat-card--{{ kpi.modifier }}">
+      <div class="manager-stat-icon">
+        {% if kpi.label == "Orders" %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        {% elif kpi.label == "Revenue" %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+        {% elif kpi.label == "Avg. Order Value" %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"/></svg>
+        {% else %}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-1a7 7 0 0 1 14 0v1"/><circle cx="18" cy="8" r="3"/><path d="M22 21v-1a5.5 5.5 0 0 0-4-5.3"/></svg>
+        {% endif %}
+      </div>
+      <div>
+        <div class="manager-stat-label">{{ kpi.label }}</div>
+        {% if kpi.format == "kes" %}
+          <div class="manager-stat-value">KES {{ kpi.value|floatformat:0 }}</div>
+        {% else %}
+          <div class="manager-stat-value">{{ kpi.value }}</div>
+        {% endif %}
+        {% if kpi.delta.direction == "up" %}
+          <span class="manager-kpi-delta manager-kpi-delta--up">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15 12 9l-6 6"/></svg>
+            {{ kpi.delta.value }}%
+          </span>
+        {% elif kpi.delta.direction == "down" %}
+          <span class="manager-kpi-delta manager-kpi-delta--down">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            {{ kpi.delta.value }}%
+          </span>
+        {% elif kpi.delta.direction == "new" %}
+          <span class="manager-kpi-delta manager-kpi-delta--new">New</span>
+        {% else %}
+          <span class="manager-kpi-delta manager-kpi-delta--flat">No change</span>
+        {% endif %}
+        <span class="manager-kpi-compare">{{ bounds.compare_label }}</span>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="manager-report-flow">
+  <div class="manager-report-scroll">
+    <div class="manager-panel manager-panel--chart manager-report-panel--trend">
+      <h2>Revenue Trend</h2>
+      <div class="manager-chart-wrap">
+        <canvas id="reportTrendChart"></canvas>
+      </div>
+    </div>
+
+    <div class="manager-panel manager-report-panel--status">
+      <h2>Orders by Payment Status</h2>
+      <div class="manager-chart-wrap">
+        <canvas id="reportStatusChart"></canvas>
+      </div>
+    </div>
+
+    <div class="manager-panel manager-report-panel--topproducts">
+      <div class="manager-panel-head">
+        <h2>Top Products</h2>
+        <a href="{% url 'manager_product_list' %}" class="manager-link">View All</a>
+      </div>
+
+      {% if top_products %}
+        <table class="manager-table">
+          <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+          <tbody>
+            {% for row in top_products %}
+              <tr>
+                <td class="manager-table-product">
+                  {% if row.product.image %}
+                    <img src="{{ row.product.image.url }}" alt="" class="manager-thumb">
+                  {% else %}
+                    <span class="manager-thumb manager-thumb--empty"></span>
+                  {% endif %}
+                  {{ row.product.name }}
+                </td>
+                <td>{{ row.units_sold }}</td>
+                <td>KES {{ row.revenue|floatformat:0 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="manager-empty">No completed orders in this period.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="manager-panel manager-report-panel--category">
+    <h2>Revenue by Category</h2>
+    {% if category_revenue %}
+      {% with top_amount=category_revenue.0.revenue %}
+        {% for row in category_revenue %}
+          <div class="manager-category-row">
+            <span class="manager-category-name" title="{{ row.name }}">{{ row.name }}</span>
+            <span class="manager-category-bar-track">
+              <span class="manager-category-bar-fill" style="width: {% widthratio row.revenue top_amount 100 %}%;"></span>
+            </span>
+            <span class="manager-category-amount">KES {{ row.revenue|floatformat:0 }}</span>
+          </div>
+        {% endfor %}
+      {% endwith %}
+    {% else %}
+      <p class="manager-empty">No completed orders in this period.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="manager-panel">
+  <h2>Delivery Status <span class="manager-muted">(completed orders in this period)</span></h2>
+  <div class="manager-delivery-grid">
+    {% for row in delivery_stats %}
+      <div class="manager-delivery-stat">
+        <div class="manager-delivery-stat-value">{{ row.count }}</div>
+        <div class="manager-delivery-stat-label">{{ row.label }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+{{ trend|json_script:"reportTrendData" }}
+{{ status_counts|json_script:"reportStatusData" }}
+{% endblock %}
+
+{% block extra_js %}
+{% load static %}
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+(function () {
+  "use strict";
+
+  var trendData = JSON.parse(document.getElementById("reportTrendData").textContent);
+  var statusData = JSON.parse(document.getElementById("reportStatusData").textContent);
+
+  if (!window.Chart) {
+    console.warn("Chart.js didn't load - check that Bella/js/chart.umd.min.js exists in your static files.");
+    return;
+  }
+
+  var trendCanvas = document.getElementById("reportTrendChart");
+  if (trendCanvas) {
+    new Chart(trendCanvas, {
+      type: "line",
+      data: {
+        labels: trendData.map(function (d) { return d.label; }),
+        datasets: [
+          {
+            label: "Revenue (KES)",
+            data: trendData.map(function (d) { return d.revenue; }),
+            borderColor: "#0F80C4",
+            backgroundColor: "rgba(15, 128, 196, 0.12)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: 3,
+            pointBackgroundColor: "#0F80C4",
+            yAxisID: "y",
+          },
+          {
+            label: "Orders",
+            data: trendData.map(function (d) { return d.orders; }),
+            borderColor: "#B8935A",
+            backgroundColor: "rgba(184, 147, 90, 0.12)",
+            fill: false,
+            tension: 0.35,
+            pointRadius: 3,
+            pointBackgroundColor: "#B8935A",
+            yAxisID: "y1",
+          },
+        ],
+      },
+      options: {
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: true, position: "top", align: "end" } },
+        scales: {
+          y: {
+            position: "left",
+            beginAtZero: true,
+            ticks: { callback: function (v) { return v >= 1000 ? (v / 1000) + "k" : v; } },
+          },
+          y1: {
+            position: "right",
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            ticks: { precision: 0 },
+          },
+        },
+      },
+    });
+  }
+
+  var statusCanvas = document.getElementById("reportStatusChart");
+  if (statusCanvas) {
+    new Chart(statusCanvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Pending", "Completed", "Failed"],
+        datasets: [{
+          data: [statusData.pending, statusData.completed, statusData.failed],
+          backgroundColor: ["#B8935A", "#3E6B2E", "#C0392B"],
+          borderWidth: 0,
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        cutout: "65%",
+        plugins: { legend: { position: "right", align: "center", labels: { boxWidth: 15, padding: 14 } } },
+      },
+    });
+  }
+
+  // Download dropdown: <details> doesn't close itself on an outside
+  // click, so nudge it shut once the user clicks elsewhere.
+  var downloadDropdown = document.querySelector(".manager-download-dropdown");
+  if (downloadDropdown) {
+    document.addEventListener("click", function (e) {
+      if (downloadDropdown.open && !downloadDropdown.contains(e.target)) {
+        downloadDropdown.open = false;
+      }
+    });
+  }
+
+  // Custom range: picking a "To" date before a chosen "From" (or vice
+  // versa) is a common typo - nudge the other field's min/max instead
+  // of letting the form submit an inverted range silently.
+  var fromInput = document.getElementById("reportStart");
+  var toInput = document.getElementById("reportEnd");
+  if (fromInput && toInput) {
+    fromInput.addEventListener("change", function () { toInput.min = fromInput.value; });
+    toInput.addEventListener("change", function () { fromInput.max = toInput.value; });
+  }
+})();
+</script>
+{% endblock %}

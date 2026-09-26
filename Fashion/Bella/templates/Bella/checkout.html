@@ -4,6 +4,7 @@
 {% block robots %}noindex, follow{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
   /* Narrower form column, wider summary column, with breathing room
      between the summary card and the edge of the page. Only applies
@@ -12,15 +13,283 @@
      stack everything into one column with no extra margin. */
   @media (min-width: 861px) {
     .checkout-grid {
-      grid-template-columns: 0.85fr 1.3fr;
+      grid-template-columns: 1.15fr 1fr;
       align-items: start;
     }
-    .summary-box {
+    .summary-col {
       margin-right: 48px;
     }
   }
+
+  /* -- compact layout so the form fits on one screen without scrolling - */
+  .checkout-section {
+    padding: 22px 0 48px;
+  }
+  .checkout-section .eyebrow {
+    margin-bottom: 2px;
+  }
+  .checkout-section h1 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 28px;
+  }
+  .checkout-section .field {
+    margin-bottom: 14px;
+  }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .field-row .field {
+    margin-bottom: 14px;
+  }
+  @media (max-width: 560px) {
+    .field-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+  .checkout-section .summary-box {
+    padding: 20px 24px;
+  }
+  .checkout-section .summary-box h3 {
+    margin-top: 0;
+  }
+  .summary-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .summary-col #checkoutSubmitBtn {
+    margin-top: 16px;
+  }
+
+  .delivery-map {
+    height: 240px;
+    border-radius: 10px;
+    margin-top: 10px;
+    background: #eee; /* shows while tiles load */
+  }
+  .delivery-map .leaflet-marker-icon {
+    filter: hue-rotate(-30deg); /* nudges the default blue pin toward the site's palette */
+  }
+  .delivery-hint {
+    color: var(--stone);
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .summary-line--total {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+  }
+  .summary-line--muted {
+    color: var(--stone);
+  }
+
+  /* -- location modal ------------------------------------------------- */
+  .location-picker-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .location-picker-status {
+    font-size: 13px;
+    color: var(--stone);
+  }
+  .location-picker-status strong {
+    color: inherit;
+  }
+
+  .location-btn-current {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .location-btn-current[disabled] {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .location-map-wrap {
+    position: relative;
+  }
+  .map-locate-btn {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    z-index: 2147483647;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: var(--bramble);
+    box-shadow: 0 3px 10px rgba(20, 16, 12, 0.45), 0 0 0 1px rgba(20, 16, 12, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    color: #fff;
+    transition: background .15s, transform .15s;
+    animation: map-locate-pulse 2.2s ease-out 3;
+  }
+  @keyframes map-locate-pulse {
+    0% { box-shadow: 0 3px 10px rgba(20, 16, 12, 0.45), 0 0 0 0 rgba(15, 128, 196, 0.55); }
+    70% { box-shadow: 0 3px 10px rgba(20, 16, 12, 0.45), 0 0 0 12px rgba(15, 128, 196, 0); }
+    100% { box-shadow: 0 3px 10px rgba(20, 16, 12, 0.45), 0 0 0 0 rgba(15, 128, 196, 0); }
+  }
+  .map-locate-btn:hover {
+    background: var(--ink);
+    transform: scale(1.06);
+  }
+  .map-locate-btn:disabled {
+    cursor: wait;
+    opacity: 0.7;
+    transform: none;
+  }
+  .map-locate-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  .map-locate-btn.is-locating svg {
+    animation: map-locate-spin 1s linear infinite;
+  }
+  @keyframes map-locate-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .location-search-wrap {
+    position: relative;
+  }
+  .location-suggestions {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    background: #fff;
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 6px 18px rgba(20, 16, 12, 0.12);
+  }
+  .location-suggestions.is-open {
+    display: block;
+  }
+  .location-suggestion {
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .location-suggestion:last-child {
+    border-bottom: none;
+  }
+  .location-suggestion:hover,
+  .location-suggestion.is-active {
+    background: #F7F2EA;
+  }
+  .location-suggestion-main {
+    color: var(--ink);
+  }
+
+  .location-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 16, 12, 0.55);
+    z-index: 2147483000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .location-modal-overlay.is-open {
+    display: flex;
+  }
+  .location-modal {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 560px;
+    height: min(620px, 92vh);
+    overflow: hidden;
+    padding: 22px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  .location-modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 4px;
+    flex: 0 0 auto;
+  }
+  .location-modal-close {
+    border: none;
+    background: none;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--stone);
+    padding: 4px;
+  }
+  .location-modal-hint {
+    flex: 0 0 auto;
+  }
+  .location-search {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 12px 0;
+  }
+  .location-search-wrap {
+    flex: 0 0 auto;
+  }
+  .location-map-wrap {
+    flex: 1 1 auto;
+    min-height: 140px;
+  }
+  .location-modal-map {
+    height: 100%;
+    width: 100%;
+    border-radius: 10px;
+    background: #eee;
+  }
+  .location-match {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #F7F2EA;
+    font-size: 14px;
+    flex: 0 0 auto;
+  }
+  .location-match-area {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    margin-bottom: 2px;
+  }
+  .location-match-meta {
+    color: var(--stone);
+    font-size: 13px;
+  }
+  .location-modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex: 0 0 auto;
+  }
 </style>
-<section class="section">
+<section class="section checkout-section">
   <div class="container checkout-grid">
     <div>
       <span class="eyebrow">Checkout</span>
@@ -32,55 +301,519 @@
         </div>
       {% endif %}
 
-      <form method="post">
+      <form method="post" id="checkoutForm">
         {% csrf_token %}
 
-        <div class="field">
-          <label for="{{ form.name.id_for_label }}">Full name</label>
-          {{ form.name }}
-          {% if form.name.errors %}<div class="field-errors">{{ form.name.errors|join:", " }}</div>{% endif %}
+        <div class="field-row">
+          <div class="field">
+            <label for="{{ form.name.id_for_label }}">Full name</label>
+            {{ form.name }}
+            {% if form.name.errors %}<div class="field-errors">{{ form.name.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}<div class="field-errors">{{ form.email.errors|join:", " }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="{{ form.phone.id_for_label }}">M-Pesa phone number</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<div class="field-errors">{{ form.phone.errors|join:", " }}</div>{% endif %}
+            {% if jenga_live %}
+              <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an STK push prompt on this number to complete payment.</p>
+            {% else %}
+              <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">We'll use this number to confirm your order and guide you through M-Pesa payment on WhatsApp.</p>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label>Delivery area</label>
+
+            <div class="location-picker-row">
+              <button type="button" class="btn btn-outline location-btn-current" id="openLocationModal"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Choose location on map</button>
+              <span class="location-picker-status" id="locationPickerStatus">No location selected yet</span>
+            </div>
+
+            <div style="display:none;">
+              {{ form.delivery_area }}
+            </div>
+            {% if form.delivery_area.errors %}<div class="field-errors">{{ form.delivery_area.errors|join:", " }}</div>{% endif %}
+            <p class="delivery-hint">Prices are matched to the nearest priced area once you drop a pin on the map.</p>
+
+            {{ form.delivery_lat }}
+            {{ form.delivery_lng }}
+            {{ form.delivery_address }}
+          </div>
         </div>
 
         <div class="field">
-          <label for="{{ form.email.id_for_label }}">Email</label>
-          {{ form.email }}
-          {% if form.email.errors %}<div class="field-errors">{{ form.email.errors|join:", " }}</div>{% endif %}
+          <label for="{{ form.delivery_notes.id_for_label }}">Delivery notes</label>
+          {{ form.delivery_notes }}
+          {% if form.delivery_notes.errors %}<div class="field-errors">{{ form.delivery_notes.errors|join:", " }}</div>{% endif %}
+          <p class="delivery-hint">Estate, building/house name, door number, landmark — anything that helps the rider find you.</p>
         </div>
 
-        <div class="field">
-          <label for="{{ form.phone.id_for_label }}">M-Pesa phone number</label>
-          {{ form.phone }}
-          {% if form.phone.errors %}<div class="field-errors">{{ form.phone.errors|join:", " }}</div>{% endif %}
-          {% if jenga_live %}
-            <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an STK push prompt on this number to complete payment.</p>
-          {% else %}
-            <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">We'll use this number to confirm your order and guide you through M-Pesa payment on WhatsApp.</p>
-          {% endif %}
-        </div>
-
-        {% if jenga_live %}
-          <button type="submit" class="btn btn-block">Pay KES {{ cart.get_total_price }} with M-Pesa</button>
-        {% else %}
-          <button type="submit" class="btn btn-block">Place order — KES {{ cart.get_total_price }}</button>
-        {% endif %}
       </form>
     </div>
 
-    <div class="summary-box">
-      <h3>Order summary</h3>
-      <hr class="divider" style="margin: 16px 0;">
-      {% for item in cart %}
-        <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:14px;">
-          <span>{{ item.product.name }} &times; {{ item.quantity }}</span>
-          <span>KES {{ item.subtotal }}</span>
+    <div class="summary-col">
+      <div class="summary-box">
+        <h3>Order summary</h3>
+        <hr class="divider" style="margin: 16px 0;">
+        {% for item in cart %}
+          <div style="display:flex; justify-content:space-between; margin-bottom:12px; font-size:14px;">
+            <span>{{ item.product.name }} &times; {{ item.quantity }}</span>
+            <span>KES {{ item.subtotal }}</span>
+          </div>
+        {% endfor %}
+        <hr class="divider" style="margin: 16px 0;">
+
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <span>KES {{ cart.get_total_price }}</span>
         </div>
-      {% endfor %}
-      <hr class="divider" style="margin: 16px 0;">
-      <div style="display:flex; justify-content:space-between; font-family:'Fraunces',serif; font-size:18px;">
-        <span>Total</span>
-        <span>KES {{ cart.get_total_price }}</span>
+        <div class="summary-line summary-line--muted">
+          <span>Delivery <span id="summaryAreaLabel"></span></span>
+          <span id="summaryShipping">Select an area</span>
+        </div>
+        <div class="summary-line summary-line--muted">
+          <span>VAT ({{ vat_rate_percent }}%)</span>
+          <span id="summaryVat">KES 0</span>
+        </div>
+
+        <hr class="divider" style="margin: 16px 0;">
+        <div class="summary-line summary-line--total">
+          <span>Total</span>
+          <span id="summaryTotal">KES {{ cart.get_total_price }}</span>
+        </div>
       </div>
+
+      {% if jenga_live %}
+        <button type="submit" form="checkoutForm" class="btn btn-block" id="checkoutSubmitBtn" data-label="Pay KES {amount} with M-Pesa">Pay KES {{ cart.get_total_price }} with M-Pesa</button>
+      {% else %}
+        <button type="submit" form="checkoutForm" class="btn btn-block" id="checkoutSubmitBtn" data-label="Place order — KES {amount}">Place order — KES {{ cart.get_total_price }}</button>
+      {% endif %}
     </div>
   </div>
 </section>
+
+<!-- Location picker modal - map + search; picks the nearest priced
+     area to wherever the customer drops the pin. Purely a friendlier
+     way to fill in the same delivery_area <select> above; if JS or
+     the map tiles fail to load, that dropdown still works on its own. -->
+<div class="location-modal-overlay" id="locationModalOverlay">
+  <div class="location-modal" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle">
+    <div class="location-modal-head">
+      <h3 id="locationModalTitle" style="margin:0;">Where should we deliver?</h3>
+      <button type="button" class="location-modal-close" id="closeLocationModal" aria-label="Close">&times;</button>
+    </div>
+    <p class="delivery-hint location-modal-hint" style="margin-top: 4px;">Search your address or tap/drag the pin on the map — we'll match it to the closest priced delivery area.</p>
+
+    <div class="location-search-wrap">
+      <input type="text" id="locationSearchInput" class="location-search" placeholder="Search an address or landmark…" autocomplete="off">
+      <div class="location-suggestions" id="locationSuggestions"></div>
+    </div>
+    <div class="location-map-wrap">
+      <div id="locationModalMap" class="location-modal-map"></div>
+      <button type="button" class="map-locate-btn" id="useCurrentLocationModal" aria-label="Use my current location" title="Use my current location">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="location-match" id="locationMatch" style="display:none;">
+      <div class="location-match-area" id="locationMatchArea"></div>
+      <div class="location-match-meta" id="locationMatchMeta"></div>
+    </div>
+
+    <div class="location-modal-actions">
+      <button type="button" class="btn" id="confirmLocation" disabled>Use this location</button>
+      <button type="button" class="btn btn-outline" id="cancelLocationModal">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var SUBTOTAL = {{ cart.get_total_price|default:0 }};
+  var VAT_RATE = {{ vat_rate_percent }} / 100;
+  var AREA_DATA = {{ area_data_json|safe }}; // { areaName: {zone, fee, lat, lng}, ... }
+
+  // Rough Nairobi CBD default so the map has somewhere sensible to
+  // open before the customer has searched or clicked anything.
+  var DEFAULT_CENTER = [-1.2833, 36.8167];
+
+  var areaSelect = document.getElementById("{{ form.delivery_area.id_for_label }}");
+  var latField = document.getElementById("{{ form.delivery_lat.id_for_label }}");
+  var lngField = document.getElementById("{{ form.delivery_lng.id_for_label }}");
+  var addressField = document.getElementById("{{ form.delivery_address.id_for_label }}");
+  var pickerStatus = document.getElementById("locationPickerStatus");
+
+  var shippingEl = document.getElementById("summaryShipping");
+  var vatEl = document.getElementById("summaryVat");
+  var totalEl = document.getElementById("summaryTotal");
+  var areaLabelEl = document.getElementById("summaryAreaLabel");
+  var submitBtn = document.getElementById("checkoutSubmitBtn");
+
+  function fmt(n) {
+    return "KES " + Math.round(n).toLocaleString();
+  }
+
+  function updateSummary() {
+    var area = areaSelect.value;
+    var entry = AREA_DATA[area];
+    var vat = SUBTOTAL * VAT_RATE;
+    var grandTotal = SUBTOTAL + vat + (entry ? entry.fee : 0);
+
+    if (!entry) {
+      shippingEl.textContent = "Select an area";
+      areaLabelEl.textContent = "";
+    } else {
+      shippingEl.textContent = fmt(entry.fee);
+      areaLabelEl.textContent = "(" + area + ")";
+    }
+    vatEl.textContent = fmt(vat);
+    totalEl.textContent = fmt(grandTotal);
+
+    if (submitBtn) {
+      submitBtn.textContent = submitBtn.getAttribute("data-label").replace(
+        "{amount}",
+        Math.round(grandTotal).toLocaleString()
+      );
+    }
+
+    if (area) {
+      pickerStatus.innerHTML = "Selected: <strong>" + area + "</strong>";
+    }
+  }
+
+  areaSelect.addEventListener("change", updateSummary);
+  updateSummary();
+
+  // ---- nearest-area matching (great-circle, mirrors shipping.py) -----
+  function haversineKm(lat1, lng1, lat2, lng2) {
+    var r = 6371;
+    var toRad = function (d) { return (d * Math.PI) / 180; };
+    var dLat = toRad(lat2 - lat1);
+    var dLng = toRad(lng2 - lng1);
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * r * Math.asin(Math.sqrt(a));
+  }
+
+  function nearestArea(lat, lng) {
+    var bestName = null, bestDist = Infinity;
+    for (var name in AREA_DATA) {
+      if (!AREA_DATA.hasOwnProperty(name)) continue;
+      var entry = AREA_DATA[name];
+      var dist = haversineKm(lat, lng, entry.lat, entry.lng);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestName = name;
+      }
+    }
+    return { name: bestName, distanceKm: bestDist };
+  }
+
+  // ---- modal + map (Leaflet/OSM, no API key needed) -------------------
+  var overlay = document.getElementById("locationModalOverlay");
+  var openBtn = document.getElementById("openLocationModal");
+  var closeBtn = document.getElementById("closeLocationModal");
+  var cancelBtn = document.getElementById("cancelLocationModal");
+  var confirmBtn = document.getElementById("confirmLocation");
+  var searchInput = document.getElementById("locationSearchInput");
+  var matchBox = document.getElementById("locationMatch");
+  var matchAreaEl = document.getElementById("locationMatchArea");
+  var matchMetaEl = document.getElementById("locationMatchMeta");
+
+  var map = null, marker = null, accuracyCircle = null;
+  var pending = null; // { lat, lng, areaName, address }
+
+  function initMapIfNeeded() {
+    if (map) return;
+    map = L.map("locationModalMap", { scrollWheelZoom: true }).setView(DEFAULT_CENTER, 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors",
+      maxZoom: 19,
+    }).addTo(map);
+
+    marker = L.marker(DEFAULT_CENTER, { draggable: true }).addTo(map);
+    marker.on("dragend", function () {
+      clearAccuracyCircle();
+      var pos = marker.getLatLng();
+      handlePin(pos.lat, pos.lng);
+    });
+    map.on("click", function (e) {
+      clearAccuracyCircle();
+      marker.setLatLng(e.latlng);
+      handlePin(e.latlng.lat, e.latlng.lng);
+    });
+  }
+
+  function clearAccuracyCircle() {
+    if (accuracyCircle) {
+      map.removeLayer(accuracyCircle);
+      accuracyCircle = null;
+    }
+  }
+
+  function handlePin(lat, lng, knownAddress) {
+    var match = nearestArea(lat, lng);
+    pending = { lat: lat, lng: lng, areaName: match.name, address: knownAddress || null };
+
+    var wasHidden = matchBox.style.display !== "block";
+    matchBox.style.display = "block";
+    matchAreaEl.textContent = match.name + " (" + AREA_DATA[match.name].zone + ")";
+    matchMetaEl.textContent = fmt(AREA_DATA[match.name].fee) + " delivery · about " +
+      match.distanceKm.toFixed(1) + " km from this pin";
+    confirmBtn.disabled = false;
+
+    // The match box shares fixed flex space with the map, so the map
+    // shrinks the first time it appears — re-measure so tiles redraw
+    // at the right size instead of looking cut off.
+    if (wasHidden && map) {
+      setTimeout(function () { map.invalidateSize(); }, 0);
+    }
+
+    if (knownAddress) return; // already have a label, no need to reverse-geocode
+
+    // Best-effort label for the rider - non-critical if it fails.
+    fetch(
+      "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + lat + "&lon=" + lng,
+      { headers: { "Accept-Language": "en" } }
+    )
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (data && data.display_name && pending) {
+          pending.address = data.display_name;
+        }
+      })
+      .catch(function () { /* pin + matched area still work without this */ });
+  }
+
+  function openModal() {
+    overlay.classList.add("is-open");
+    initMapIfNeeded();
+    setTimeout(function () { map.invalidateSize(); }, 50);
+  }
+
+  function closeModal() {
+    overlay.classList.remove("is-open");
+  }
+
+  openBtn.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) closeModal();
+  });
+
+  confirmBtn.addEventListener("click", function () {
+    if (!pending || !pending.areaName) return;
+    areaSelect.value = pending.areaName;
+    latField.value = pending.lat.toFixed(6);
+    lngField.value = pending.lng.toFixed(6);
+    addressField.value = pending.address || "";
+    updateSummary();
+    closeModal();
+  });
+
+  // ---- address search with live autocomplete (Nominatim geocoding) ----
+  var suggestBox = document.getElementById("locationSuggestions");
+  var searchTimer = null;
+  var currentResults = [];
+  var activeIndex = -1;
+
+  function closeSuggestions() {
+    suggestBox.classList.remove("is-open");
+    suggestBox.innerHTML = "";
+    currentResults = [];
+    activeIndex = -1;
+  }
+
+  function renderSuggestions(results) {
+    currentResults = results;
+    activeIndex = -1;
+    if (!results.length) {
+      closeSuggestions();
+      return;
+    }
+    suggestBox.innerHTML = results
+      .map(function (r, i) {
+        return '<div class="location-suggestion" data-index="' + i + '">' +
+          '<div class="location-suggestion-main">' + r.display_name + "</div>" +
+          "</div>";
+      })
+      .join("");
+    suggestBox.classList.add("is-open");
+  }
+
+  function pickSuggestion(result) {
+    var lat = parseFloat(result.lat);
+    var lng = parseFloat(result.lon);
+    searchInput.value = result.display_name;
+    closeSuggestions();
+    initMapIfNeeded();
+    clearAccuracyCircle();
+    marker.setLatLng([lat, lng]);
+    map.setView([lat, lng], 15);
+    handlePin(lat, lng, result.display_name);
+  }
+
+  suggestBox.addEventListener("click", function (e) {
+    var row = e.target.closest(".location-suggestion");
+    if (!row) return;
+    pickSuggestion(currentResults[parseInt(row.getAttribute("data-index"), 10)]);
+  });
+
+  searchInput.addEventListener("input", function () {
+    var query = searchInput.value.trim();
+    if (searchTimer) clearTimeout(searchTimer);
+
+    if (query.length < 3) {
+      closeSuggestions();
+      return;
+    }
+
+    // Nominatim's shared server explicitly disallows firing a query per
+    // keystroke - that pattern reads as autocomplete abuse and gets the
+    // request blocked (their block page has no CORS header, so the
+    // browser reports it as a generic failed fetch). A longer pause
+    // keeps us well under the 1 req/sec ceiling and out of that pattern.
+    searchTimer = setTimeout(function () {
+      fetch(
+        "https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=ke&addressdetails=1&q=" +
+          encodeURIComponent(query),
+        { headers: { "Accept-Language": "en" } }
+      )
+        .then(function (res) {
+          if (!res.ok) throw new Error("lookup failed");
+          return res.json();
+        })
+        .then(function (results) { renderSuggestions(results || []); })
+        .catch(function () {
+          // Surface this instead of leaving the customer typing into a
+          // dropdown that silently never opens - they still have the map
+          // and the plain area dropdown as a fallback.
+          closeSuggestions();
+          pickerStatus.textContent = "Address search is unavailable right now — drop the pin on the map instead, or use the area list.";
+        });
+    }, 700);
+  });
+
+  searchInput.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowDown" && currentResults.length) {
+      e.preventDefault();
+      activeIndex = (activeIndex + 1) % currentResults.length;
+      updateActiveSuggestion();
+    } else if (e.key === "ArrowUp" && currentResults.length) {
+      e.preventDefault();
+      activeIndex = (activeIndex - 1 + currentResults.length) % currentResults.length;
+      updateActiveSuggestion();
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (currentResults.length) {
+        pickSuggestion(currentResults[activeIndex >= 0 ? activeIndex : 0]);
+      }
+    } else if (e.key === "Escape") {
+      closeSuggestions();
+    }
+  });
+
+  function updateActiveSuggestion() {
+    var rows = suggestBox.querySelectorAll(".location-suggestion");
+    rows.forEach(function (row, i) {
+      row.classList.toggle("is-active", i === activeIndex);
+    });
+    if (rows[activeIndex]) rows[activeIndex].scrollIntoView({ block: "nearest" });
+  }
+
+  document.addEventListener("click", function (e) {
+    if (!suggestBox.contains(e.target) && e.target !== searchInput) closeSuggestions();
+  });
+
+  // ---- "use my current location" (browser geolocation, lives on the map) --
+  function applyCurrentLocation(button) {
+    if (!navigator.geolocation) {
+      pickerStatus.textContent = "Your browser doesn't support location sharing — please pick from the map or list.";
+      return;
+    }
+
+    button.disabled = true;
+    button.classList.add("is-locating");
+    pickerStatus.textContent = "Getting your current location…";
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var accuracy = pos.coords.accuracy; // metres, radius of a 95%-confidence circle
+
+        initMapIfNeeded();
+        marker.setLatLng([lat, lng]);
+
+        // Draw/update a circle showing how much to trust this fix. A
+        // browser's location comes from GPS on phones (tight, tens of
+        // metres) but often from WiFi/IP lookups on desktops - which can
+        // be off by a kilometre or more, especially where those location
+        // databases are sparse (true for parts of Kenya). Rather than
+        // silently trusting a possibly-bad fix, show it and let the
+        // customer drag the pin if it lands in the wrong place.
+        if (accuracyCircle) {
+          clearAccuracyCircle();
+        }
+        if (accuracy) {
+          accuracyCircle = L.circle([lat, lng], {
+            radius: accuracy,
+            color: "#0F80C4",
+            weight: 1,
+            fillColor: "#0F80C4",
+            fillOpacity: 0.12,
+          }).addTo(map);
+          map.fitBounds(accuracyCircle.getBounds(), { maxZoom: 16, padding: [24, 24] });
+        } else {
+          map.setView([lat, lng], 15);
+        }
+
+        // Drop the pin and show the matched area, same as clicking the map
+        // or dragging the pin does - but don't touch the real form fields
+        // yet. Desktop/laptop geolocation has no GPS to fall back on, so
+        // it's often off by a couple hundred metres (sometimes more); the
+        // customer needs to actually see where the pin landed and drag it
+        // if needed before this becomes their delivery location.
+        handlePin(lat, lng);
+
+        var accuracyNote = accuracy && accuracy > 800
+          ? " Your device could only place you within about " + Math.round(accuracy) +
+            "m, so check the pin carefully before confirming."
+          : " Check the pin, drag it if it's off, then hit Confirm.";
+        pickerStatus.textContent = "Found your approximate location." + accuracyNote;
+
+        button.disabled = false;
+        button.classList.remove("is-locating");
+      },
+      function () {
+        button.disabled = false;
+        button.classList.remove("is-locating");
+        pickerStatus.textContent = "Couldn't get your location — please pick from the map or list instead.";
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  document.getElementById("useCurrentLocationModal").addEventListener("click", function () {
+    initMapIfNeeded();
+    applyCurrentLocation(this);
+  });
+})();
+</script>
 {% endblock %}

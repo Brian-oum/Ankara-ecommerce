@@ -21,7 +21,7 @@
 
     var typeEl = document.getElementById("preloaderTypeText");
     var phrases = [
-      "Where beauty meets artistry",
+      "Where creativy meets impact",
       "Handcrafted Ankara, made for you",
       "Your best look, every day"
     ];
