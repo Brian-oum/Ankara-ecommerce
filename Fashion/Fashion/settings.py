@@ -150,33 +150,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-JENGA_LIVE_ENABLED = False   # flip to True once the live account is approved
-
-JENGA_BASE_URL = os.getenv("JENGA_BASE_URL")
-
-JENGA_MERCHANT_CODE = os.getenv("JENGA_MERCHANT_CODE")
-
-JENGA_API_KEY = os.getenv("JENGA_API_KEY")
-
-JENGA_CONSUMER_SECRET = os.getenv("JENGA_CONSUMER_SECRET")
-
-JENGA_CALLBACK_URL = os.getenv("JENGA_CALLBACK_URL")
-
-JENGA_CALLBACK_USERNAME = os.getenv("JENGA_CALLBACK_USERNAME")
-
-JENGA_CALLBACK_PASSWORD = os.getenv("JENGA_CALLBACK_PASSWORD")
-
-# Only build these paths when the env var is set - BASE_DIR / None raises a
-# TypeError at import time, which would stop the whole site from booting
-# on a deployment that only uses the Daraja (MPESA_*) gateway.
-_jenga_private_key = os.getenv("JENGA_PRIVATE_KEY")
-_jenga_public_key = os.getenv("JENGA_PUBLIC_KEY")
-JENGA_PRIVATE_KEY = BASE_DIR / _jenga_private_key if _jenga_private_key else None
-
-JENGA_PUBLIC_KEY = BASE_DIR / _jenga_public_key if _jenga_public_key else None
-
-JENGA_ACCOUNT_NUMBER = os.getenv("JENGA_ACCOUNT_NUMBER")
-JENGA_MERCHANT_NAME = os.getenv("JENGA_MERCHANT_NAME")
 WHATSAPP_BUSINESS_NUMBER = os.getenv("WHATSAPP_BUSINESS_NUMBER")
 LOGGING = {
     "version": 1,
