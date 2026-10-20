@@ -361,6 +361,17 @@ class Payment(models.Model):
     telco_reference = models.CharField(max_length=50, blank=True, null=True)
     invoice_number = models.CharField(max_length=50, blank=True, null=True)
 
+    # ---- Daraja (direct M-Pesa STK push) -----------------------------
+    # CheckoutRequestID is what Safaricom's callback identifies a payment
+    # by, so it's indexed. It's overwritten on every retry, so it always
+    # points at the *latest* prompt sent for this payment.
+    checkout_request_id = models.CharField(max_length=100, blank=True, db_index=True)
+    merchant_request_id = models.CharField(max_length=100, blank=True)
+    # Raw outcome from Safaricom (e.g. 1032 "Request cancelled by user"),
+    # kept for support/debugging - customers see a friendlier message.
+    result_code = models.CharField(max_length=10, blank=True)
+    result_desc = models.CharField(max_length=255, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

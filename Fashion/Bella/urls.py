@@ -60,6 +60,11 @@ urlpatterns = [
     path("authenticate/", views.test_authentication, name="authenticate"),
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("terms-of-service/", views.terms_of_service, name="terms_of_service"),
+    
+    path("payments/hook/<str:token>/", views.mpesa_callback, name="mpesa_callback"),
+    path("pay/<str:order_reference>/", views.payment_pending, name="payment_pending"),
+    path("pay/<str:order_reference>/status/", views.payment_status, name="payment_status"),
+    path("pay/<str:order_reference>/retry/", views.payment_retry, name="payment_retry"),
 
     path("automation/failed-payments/", views.automation_failed_payments_report, name="automation_failed_payments_report"),
 ]

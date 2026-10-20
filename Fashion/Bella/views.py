@@ -1,10 +1,12 @@
 import base64
 import calendar
 import csv
+import hmac
 import io
 import json
 import logging
 from datetime import date, datetime, timedelta
+from decimal import Decimal
 
 import requests
 from reportlab.lib import colors
@@ -20,13 +22,14 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.http import JsonResponse
+from django.core.cache import cache
+from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
 from .authentication import JengaAuthentication
 from .cart import Cart
@@ -37,6 +40,8 @@ from .models import (
     ProductReview, StoreReview,
 )
 from .services import JengaClient, generate_reference
+from . import payments
+from .mpesa import DarajaClient, MpesaError, normalize_msisdn, whole_shillings
 from . import shipping
 from .whatsapp import build_contact_whatsapp_link
 from .notifications import notify_new_order, notify_new_review, notify_contact_message
@@ -742,7 +747,9 @@ def _checkout_context(form, cart):
     return {
         "form": form,
         "cart": cart,
-        "jenga_live": settings.JENGA_LIVE_ENABLED,
+        # True when ANY gateway (Daraja or Jenga) will send an STK prompt -
+        # drives the "Pay with M-Pesa" button/copy in checkout.html.
+        "stk_enabled": payments.stk_enabled(),
         "area_data_json": json.dumps(shipping.area_data_for_js()),
         "vat_rate_percent": int(shipping.VAT_RATE * 100),
     }
@@ -782,6 +789,14 @@ def checkout(request):
             subtotal_amount = cart.get_total_price()
             vat_amount = shipping.calculate_vat(subtotal_amount)
             total_amount = subtotal_amount + shipping_fee + vat_amount
+
+            if payments.daraja_enabled():
+                # Daraja can only charge whole shillings (VAT often leaves
+                # cents). Round UP once, here, so the order total, the
+                # Payment amount and what the customer is actually charged
+                # are all the same number - no under-charging, no mismatch
+                # when the callback's Amount is checked against our record.
+                total_amount = Decimal(whole_shillings(total_amount))
 
             order_reference = generate_reference("OR")
             payment_reference = generate_reference("PR")
@@ -838,6 +853,27 @@ def checkout(request):
                 amount=total_amount,
                 status="Pending",
             )
+
+            if payments.daraja_enabled():
+                # Direct Safaricom STK push. Whether or not the push could
+                # be sent, the order already exists, so the cart is cleared
+                # and the customer lands on the pending page - which polls
+                # for the result and offers "send prompt again" if this
+                # push (or the customer) failed. That avoids the duplicate
+                # orders you'd get from making them re-submit the form.
+                request.session["last_order_reference"] = order_reference
+                try:
+                    payments.start_stk_push(payment)
+                except MpesaError as exc:
+                    logger.error("Daraja STK push could not be sent for %s: %s", payment_reference, exc)
+                    payment.status = "Failed"
+                    payment.result_desc = str(exc)[:255]
+                    payment.save(update_fields=["status", "result_desc", "updated_at"])
+                    order.status = "Failed"
+                    order.save(update_fields=["status", "updated_at"])
+
+                cart.clear()
+                return redirect("payment_pending", order_reference=order_reference)
 
             if settings.JENGA_LIVE_ENABLED:
                 client = JengaClient()
@@ -951,7 +987,9 @@ def order_confirmation(request, order_reference):
     return render(request, "Bella/success.html", {
         "order": order,
         "whatsapp_link": whatsapp_link,
-        "jenga_live": settings.JENGA_LIVE_ENABLED,
+        # success.html's copy keys off this name; it now means "a gateway
+        # is live" (Daraja or Jenga), not Jenga specifically.
+        "jenga_live": payments.stk_enabled(),
     })
 
 
@@ -1156,6 +1194,198 @@ def payment_callback(request):
         "status": "success",
         "message": "Callback received"
     })
+
+# ---- Daraja (direct M-Pesa STK push) ---------------------------------------
+#
+#   GET  /pay/<order_ref>/            payment_pending  - "check your phone" page
+#   GET  /pay/<order_ref>/status/     payment_status   - JSON, polled by that page
+#   POST /pay/<order_ref>/retry/      payment_retry    - re-send the prompt
+#   POST /payments/hook/<token>/      mpesa_callback   - Safaricom -> us
+#
+# Business rules (idempotency, Completed-wins, emails) live in payments.py.
+
+# Safaricom expects this exact acknowledgement; anything else makes it retry.
+_ACK = {"ResultCode": 0, "ResultDesc": "Accepted"}
+
+# Only start asking Daraja ourselves once the callback is clearly late.
+_QUERY_AFTER_SECONDS = 20
+_QUERY_THROTTLE_SECONDS = 8
+_RETRY_COOLDOWN_SECONDS = 20
+# A prompt that's been pending this long is dead on the phone (they expire ~60s).
+_STALE_PENDING_SECONDS = 75
+
+
+# ---- Safaricom -> us -----------------------------------------------------------
+
+@csrf_exempt
+def mpesa_callback(request, token):
+    """
+    Daraja posts the final STK result here. Daraja callbacks carry no
+    signature or auth header, so we protect this endpoint three ways:
+      1. the URL contains a secret token (MPESA_CALLBACK_TOKEN),
+      2. we only act on a CheckoutRequestID we generated ourselves,
+      3. for successes, the paid Amount must equal what we charged.
+    """
+    expected = settings.MPESA_CALLBACK_TOKEN or ""
+    if not expected or not hmac.compare_digest(token, expected):
+        raise Http404()  # don't reveal that the endpoint exists
+
+    if request.method != "POST":
+        return JsonResponse({"message": "POST required"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        cb = data["Body"]["stkCallback"]
+        checkout_request_id = cb["CheckoutRequestID"]
+        result_code = str(cb["ResultCode"])
+    except (ValueError, KeyError, TypeError):
+        logger.warning("Malformed Daraja callback: %r", request.body[:500])
+        return JsonResponse({"ResultCode": 1, "ResultDesc": "Malformed"}, status=400)
+
+    logger.info("Daraja callback: %s", json.dumps(data))
+
+    payment = Payment.objects.filter(checkout_request_id=checkout_request_id).first()
+    if payment is None:
+        logger.warning("Daraja callback for unknown CheckoutRequestID %s", checkout_request_id)
+        return JsonResponse(_ACK)
+
+    result_desc = cb.get("ResultDesc", "")
+
+    if result_code == "0":
+        items = cb.get("CallbackMetadata", {}).get("Item", [])
+        meta = {i.get("Name"): i.get("Value") for i in items if isinstance(i, dict)}
+
+        if not payments.amount_matches(payment, meta.get("Amount")):
+            # Money moved but not the amount we expected. Do NOT auto-complete;
+            # leave Pending and shout so a human reconciles it.
+            logger.critical(
+                "Amount mismatch on %s: expected %s, Daraja reported %s (receipt %s)",
+                payment.payment_reference, payment.amount,
+                meta.get("Amount"), meta.get("MpesaReceiptNumber"),
+            )
+            return JsonResponse(_ACK)
+
+        payments.apply_payment_result(
+            payment.pk,
+            success=True,
+            receipt=str(meta.get("MpesaReceiptNumber", "")),
+            result_code=result_code,
+            result_desc=result_desc,
+        )
+    else:
+        payments.apply_payment_result(
+            payment.pk, success=False, result_code=result_code, result_desc=result_desc
+        )
+
+    return JsonResponse(_ACK)
+
+
+# ---- customer-facing -----------------------------------------------------------
+
+def _can_manage(request, order):
+    """Only the browser that placed the order (or its signed-in owner) may re-trigger a prompt."""
+    if request.session.get("last_order_reference") == order.order_reference:
+        return True
+    return request.user.is_authenticated and order.user_id == request.user.id
+
+
+def _payment_for(order_reference):
+    return get_object_or_404(
+        Payment.objects.select_related("order"), order_reference=order_reference
+    )
+
+
+@require_GET
+def payment_pending(request, order_reference):
+    payment = _payment_for(order_reference)
+    order = payment.order
+
+    if payment.status == "Completed":
+        return redirect("order_confirmation", order_reference=order_reference)
+
+    return render(request, "Bella/payment_pending.html", {
+        "order": order,
+        "payment": payment,
+        "status_url": reverse("payment_status", args=[order_reference]),
+        "retry_url": reverse("payment_retry", args=[order_reference]),
+        "confirmation_url": reverse("order_confirmation", args=[order_reference]),
+        "can_retry": _can_manage(request, order),
+        "items": order.items.select_related("product"),   # <-- add this
+    })
+
+
+@require_GET
+def payment_status(request, order_reference):
+    payment = _payment_for(order_reference)
+
+    # Safety net: if Safaricom's callback is late or lost, ask them directly.
+    if payment.status == "Pending" and payment.checkout_request_id:
+        age = (timezone.now() - payment.updated_at).total_seconds()
+        throttle_key = f"mpesa:query:{payment.pk}"
+        if age > _QUERY_AFTER_SECONDS and cache.add(throttle_key, 1, _QUERY_THROTTLE_SECONDS):
+            try:
+                result = DarajaClient().stk_query(payment.checkout_request_id)
+            except MpesaError:
+                result = {"state": "pending"}  # transient - try again next poll
+
+            if result["state"] != "pending":
+                payment, _ = payments.apply_payment_result(
+                    payment.pk,
+                    success=result["state"] == "success",
+                    result_code=result.get("result_code", ""),
+                    result_desc=result.get("result_desc", ""),
+                )
+
+    body = {"status": payment.status}
+    if payment.status == "Completed":
+        body["redirect"] = reverse("order_confirmation", args=[order_reference])
+    elif payment.status == "Failed":
+        body["message"] = payments.friendly_failure(payment.result_code, payment.result_desc)
+    return JsonResponse(body)
+
+
+@require_POST
+def payment_retry(request, order_reference):
+    payment = _payment_for(order_reference)
+    order = payment.order
+
+    if order is None or not _can_manage(request, order):
+        return JsonResponse({"ok": False, "message": "Not allowed."}, status=403)
+
+    if payment.status == "Completed":
+        return JsonResponse({"ok": False, "message": "This order is already paid."}, status=409)
+
+    age = (timezone.now() - payment.updated_at).total_seconds()
+    if payment.status == "Pending" and age < _STALE_PENDING_SECONDS:
+        return JsonResponse(
+            {"ok": False, "message": "A prompt was just sent - give it a moment."}, status=409
+        )
+
+    # Stops double-clicks / scripts from spamming the customer's phone.
+    if not cache.add(f"mpesa:retry:{payment.pk}", 1, _RETRY_COOLDOWN_SECONDS):
+        return JsonResponse(
+            {"ok": False, "message": "Please wait a few seconds before trying again."}, status=429
+        )
+
+    # Wrong number is the most common reason a payment fails, so allow fixing it here.
+    new_phone = (request.POST.get("phone") or "").strip()
+    if new_phone:
+        try:
+            msisdn = normalize_msisdn(new_phone)
+        except ValueError as exc:
+            return JsonResponse({"ok": False, "message": str(exc)}, status=400)
+        payment.phone = msisdn
+        payment.save(update_fields=["phone", "updated_at"])
+        order.phone = msisdn
+        order.save(update_fields=["phone", "updated_at"])
+
+    try:
+        payments.start_stk_push(payment)
+    except MpesaError as exc:
+        return JsonResponse({"ok": False, "message": str(exc)}, status=502)
+
+    return JsonResponse({"ok": True})
+
 
 def privacy_policy(request):
     return render(request, "Bella/privacy.html")
