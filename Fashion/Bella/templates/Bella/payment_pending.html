@@ -1,0 +1,335 @@
+{% extends "Bella/base.html" %}
+{% block title %}Complete payment — Etsirbella Designs{% endblock %}
+{% block meta_description %}Approve the M-Pesa prompt on your phone to complete your order.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<style>
+  /* Same two-column rhythm as checkout.html: status on the left, receipt on
+     the right, stacking to one column on phones. Colours/fonts all come from
+     the tokens in style.css (--ink, --hairline, --bramble, --danger ...). */
+  .pay-section { padding: 36px 0 72px; }
+  .pay-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 56px;
+    align-items: start;
+  }
+  @media (min-width: 861px) { .pay-receipt-col { margin-right: 48px; } }
+  @media (max-width: 860px) { .pay-grid { grid-template-columns: 1fr; gap: 32px; } }
+
+  .pay-section h1 { margin: 0 0 6px; font-size: 32px; }
+
+  /* ---- status card ------------------------------------------------ */
+  .pay-card {
+    background: var(--white);
+    border: 1px solid var(--hairline);
+    padding: 40px 32px 32px;
+    margin-top: 20px;
+  }
+  @media (max-width: 480px) { .pay-card { padding: 32px 20px 24px; } }
+  .pay-state[hidden] { display: none; }
+  .pay-state { text-align: center; }
+  .pay-state h2 { font-size: 26px; margin-bottom: 8px; }
+  .pay-state h2:focus { outline: none; }
+  .pay-lede { color: var(--ink-soft); font-size: 15px; max-width: 40ch; margin: 0 auto 4px; text-wrap: balance; }
+  .pay-lede strong { color: var(--ink); font-weight: 600; white-space: nowrap; }
+
+  /* the phone beacon: one slow, deliberate pulse - the page's only motion */
+  .pay-beacon {
+    position: relative;
+    width: 84px; height: 84px;
+    margin: 0 auto 26px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: var(--ivory);
+    color: var(--bramble);
+    font-size: 28px;
+  }
+  .pay-beacon::before, .pay-beacon::after {
+    content: "";
+    position: absolute; inset: -1px;
+    border-radius: 50%;
+    border: 1px solid var(--bramble);
+    opacity: 0;
+    animation: pay-pulse 2.6s ease-out infinite;
+  }
+  .pay-beacon::after { animation-delay: 1.3s; }
+  @keyframes pay-pulse {
+    0%   { transform: scale(1);   opacity: .55; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+  .pay-beacon--alert { color: var(--danger); border-color: var(--danger); background: var(--danger-soft); }
+  .pay-beacon--alert::before, .pay-beacon--alert::after { display: none; }
+  .pay-beacon--calm::before, .pay-beacon--calm::after { display: none; }
+
+  /* ---- what happens next (a genuine sequence) ---------------------- */
+  .pay-steps {
+    list-style: none;
+    margin: 30px 0 0; padding: 22px 0 0;
+    border-top: 1px solid var(--hairline);
+    text-align: left;
+    display: grid; gap: 14px;
+  }
+  .pay-step { display: flex; align-items: center; gap: 14px; font-size: 14px; color: var(--stone); }
+  .pay-step-dot {
+    flex: none;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: grid; place-items: center;
+    border: 1px solid var(--hairline);
+    font-size: 11px;
+  }
+  .pay-step.is-done { color: var(--ink-soft); }
+  .pay-step.is-done .pay-step-dot { background: var(--ink); border-color: var(--ink); color: var(--ivory); }
+  .pay-step.is-active { color: var(--ink); font-weight: 600; }
+  .pay-step.is-active .pay-step-dot { border-color: var(--bramble); box-shadow: 0 0 0 4px rgba(15,128,196,.15); }
+  .pay-step.is-active .pay-step-dot::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--bramble); }
+
+  .pay-hint {
+    margin: 22px 0 0; padding: 12px 14px;
+    background: var(--ivory); border: 1px solid var(--hairline);
+    font-size: 13px; color: var(--ink-soft); text-align: left;
+  }
+  .pay-hint[hidden] { display: none; }
+
+  /* ---- failed state ---------------------------------------------- */
+  .pay-card--failed { border-top: 3px solid var(--danger); }
+  .pay-failed-msg {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 19px; color: var(--danger);
+    margin: 0 auto 8px; max-width: 34ch; text-wrap: balance;
+  }
+  .pay-retry { margin-top: 26px; text-align: left; }
+  .pay-retry .field { margin-bottom: 14px; }
+  .pay-retry-msg { color: var(--danger); font-size: 13px; margin: -4px 0 12px; }
+  .pay-retry-msg:empty { display: none; }
+  .pay-retry .btn .fa-spin { display: none; }
+  .pay-retry .btn.is-busy .fa-spin { display: inline-block; }
+
+  .pay-later {
+    display: block; margin-top: 20px; text-align: center;
+    font-size: 13px; color: var(--stone);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .pay-later:hover { color: var(--ink); }
+
+  /* ---- receipt --------------------------------------------------- */
+  .pay-receipt { margin-top: 20px; }
+  .pay-receipt.summary-box { padding: 24px; }
+  .pay-receipt h3 { margin: 0 0 4px; font-size: 20px; }
+  .pay-ref { font-size: 12px; letter-spacing: .08em; color: var(--stone); margin-bottom: 18px; }
+  .pay-items { list-style: none; margin: 0 0 16px; padding: 0 0 6px; border-bottom: 1px solid var(--hairline); }
+  .pay-item { display: flex; justify-content: space-between; gap: 14px; font-size: 14px; margin-bottom: 12px; }
+  .pay-item-name { color: var(--ink); }
+  .pay-item-meta { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--stone); margin-top: 2px; }
+  .pay-swatch { width: 10px; height: 10px; border: 1px solid var(--hairline); display: inline-block; }
+  .pay-line { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 8px; color: var(--ink-soft); }
+  .pay-line--total {
+    font-family: 'Fraunces', Georgia, serif; font-size: 20px; color: var(--ink);
+    margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--hairline);
+  }
+  .pay-paying-to { margin-top: 18px; font-size: 13px; color: var(--stone); display: flex; gap: 8px; align-items: baseline; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pay-beacon::before, .pay-beacon::after { animation: none; display: none; }
+  }
+</style>
+
+<section class="section pay-section" id="payRoot"
+         data-status-url="{{ status_url }}" data-retry-url="{{ retry_url }}">
+  <div class="container pay-grid">
+
+    <!-- ============ status column ============ -->
+    <div>
+      <span class="eyebrow">Payment</span>
+
+      <div class="pay-card" id="payCard" aria-live="polite">
+
+        <!-- WAITING: prompt is on the customer's phone -->
+        <div class="pay-state" id="stateWaiting">
+          <div class="pay-beacon" aria-hidden="true"><i class="fa-solid fa-mobile-screen-button"></i></div>
+          <h2>Check your phone</h2>
+          <p class="pay-lede">
+            We've sent an M-Pesa prompt to <strong>{{ payment.phone }}</strong>.
+            Enter your PIN to pay <strong>KES {{ payment.amount|floatformat:"0g" }}</strong>.
+          </p>
+
+          <ol class="pay-steps">
+            <li class="pay-step is-done"><span class="pay-step-dot"><i class="fa-solid fa-check" aria-hidden="true"></i></span>Prompt sent to your phone</li>
+            <li class="pay-step is-active"><span class="pay-step-dot"></span>Enter your M-Pesa PIN</li>
+            <li class="pay-step"><span class="pay-step-dot"></span>We confirm your order</li>
+          </ol>
+
+          <p class="pay-hint" id="slowHint" hidden>
+            Nothing on your phone yet? Check that it has network signal and that
+            you're not in the middle of another M-Pesa request. The prompt can take
+            up to a minute to arrive.
+          </p>
+        </div>
+
+        <!-- FAILED: cancelled / wrong PIN / timed out / couldn't send -->
+        <div class="pay-state" id="stateFailed" hidden>
+          <div class="pay-beacon pay-beacon--alert" aria-hidden="true"><i class="fa-solid fa-circle-exclamation"></i></div>
+          <h2 id="failedHeading" tabindex="-1">Payment not completed</h2>
+          <p class="pay-failed-msg" id="failedMessage">The payment was not completed.</p>
+          <p class="pay-lede">Your order is saved &mdash; send a new prompt when you're ready.</p>
+
+          {% if can_retry %}
+          <form class="pay-retry" id="retryForm" novalidate>
+            {% csrf_token %}
+            <div class="field">
+              <label for="retryPhone">M-Pesa number</label>
+              <input id="retryPhone" name="phone" type="tel" inputmode="tel"
+                     autocomplete="tel" value="{{ payment.phone }}" required>
+            </div>
+            <p class="pay-retry-msg" id="retryMessage" role="alert"></p>
+            <button type="submit" class="btn btn-block" id="retryBtn">
+              <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+              <span>Send prompt again</span>
+            </button>
+          </form>
+          {% else %}
+          <p class="pay-lede" style="margin-top:18px;">Open this page on the device you ordered from to try again.</p>
+          {% endif %}
+        </div>
+
+        <!-- SLOW: we stopped polling without an answer -->
+        <div class="pay-state" id="stateSlow" hidden>
+          <div class="pay-beacon pay-beacon--calm" aria-hidden="true"><i class="fa-regular fa-clock"></i></div>
+          <h2>Still waiting on M-Pesa</h2>
+          <p class="pay-lede">
+            If you've already entered your PIN, your order will update on its own &mdash;
+            <strong>please don't pay again.</strong>
+          </p>
+          <a class="btn btn-outline" style="margin-top:22px;" href="{{ confirmation_url }}">View my order</a>
+        </div>
+      </div>
+
+      <a class="pay-later" href="{{ confirmation_url }}">I'll finish payment later</a>
+    </div>
+
+    <!-- ============ receipt column ============ -->
+    <aside class="pay-receipt-col">
+      <div class="summary-box pay-receipt">
+        <h3>Your order</h3>
+        <div class="pay-ref">{{ order.order_reference }}</div>
+
+        {% if items %}
+        <ul class="pay-items">
+          {% for item in items %}
+          <li class="pay-item">
+            <div>
+              <div class="pay-item-name">{{ item.quantity }} &times; {{ item.product.name }}</div>
+              {% if item.colour_name %}
+              <div class="pay-item-meta">
+                <span class="pay-swatch" style="background: {{ item.colour_hex }};"></span>{{ item.colour_name }}
+              </div>
+              {% endif %}
+            </div>
+            <div>KES {{ item.subtotal|floatformat:"-2g" }}</div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+
+        <div class="pay-line"><span>Subtotal</span><span>KES {{ order.subtotal_amount|floatformat:"-2g" }}</span></div>
+        <div class="pay-line"><span>Delivery{% if order.delivery_area %} &middot; {{ order.delivery_area }}{% endif %}</span><span>KES {{ order.shipping_fee|floatformat:"-2g" }}</span></div>
+        {% if order.vat_amount %}
+        <div class="pay-line"><span>VAT</span><span>KES {{ order.vat_amount|floatformat:"-2g" }}</span></div>
+        {% endif %}
+        <div class="pay-line pay-line--total"><span>Total</span><span>KES {{ payment.amount|floatformat:"0g" }}</span></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<script>
+(function () {
+  var root = document.getElementById("payRoot");
+  var statusUrl = root.dataset.statusUrl;
+  var retryUrl = root.dataset.retryUrl;
+
+  var card = document.getElementById("payCard");
+  var waiting = document.getElementById("stateWaiting");
+  var failed = document.getElementById("stateFailed");
+  var slow = document.getElementById("stateSlow");
+  var hint = document.getElementById("slowHint");
+
+  var POLL_MS = 3000;
+  var HINT_MS = 30 * 1000;           // show "nothing on your phone?" help after 30s
+  var GIVE_UP_MS = 3 * 60 * 1000;    // prompts die after ~1 min; 3 min is generous
+  var startedAt = Date.now();
+  var timer = null, hintTimer = null;
+
+  function show(el) {
+    [waiting, failed, slow].forEach(function (s) { s.hidden = (s !== el); });
+    card.classList.toggle("pay-card--failed", el === failed);
+  }
+
+  function armHint() {
+    hint.hidden = true;
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.hidden = false; }, HINT_MS);
+  }
+
+  function poll() {
+    fetch(statusUrl, { headers: { "Accept": "application/json" }, cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.status === "Completed") {
+          window.location.href = d.redirect;
+          return;
+        }
+        if (d.status === "Failed") {
+          clearTimeout(hintTimer);
+          document.getElementById("failedMessage").textContent = d.message || "The payment was not completed.";
+          show(failed);
+          document.getElementById("failedHeading").focus();   // announce it to screen readers
+          return;                       // stop polling until the customer retries
+        }
+        if (Date.now() - startedAt > GIVE_UP_MS) { clearTimeout(hintTimer); show(slow); return; }
+        timer = setTimeout(poll, POLL_MS);
+      })
+      .catch(function () {              // flaky mobile data: back off, keep trying
+        timer = setTimeout(poll, POLL_MS * 2);
+      });
+  }
+
+  var form = document.getElementById("retryForm");
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var btn = document.getElementById("retryBtn");
+      var msg = document.getElementById("retryMessage");
+      msg.textContent = "";
+      btn.disabled = true;
+      btn.classList.add("is-busy");
+
+      fetch(retryUrl, {
+        method: "POST",
+        headers: { "X-CSRFToken": form.querySelector("[name=csrfmiddlewaretoken]").value },
+        body: new FormData(form),
+      })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok && d.ok, d: d }; }); })
+        .then(function (res) {
+          btn.disabled = false; btn.classList.remove("is-busy");
+          if (!res.ok) { msg.textContent = res.d.message || "Couldn't send the prompt. Try again."; return; }
+          startedAt = Date.now();
+          show(waiting);
+          armHint();
+          clearTimeout(timer);
+          timer = setTimeout(poll, POLL_MS);
+        })
+        .catch(function () {
+          btn.disabled = false; btn.classList.remove("is-busy");
+          msg.textContent = "Network problem - please try again.";
+        });
+    });
+  }
+
+  armHint();
+  poll();
+})();
+</script>
+{% endblock %}

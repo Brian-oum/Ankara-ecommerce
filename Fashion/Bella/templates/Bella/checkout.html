@@ -323,8 +323,8 @@
             <label for="{{ form.phone.id_for_label }}">M-Pesa phone number</label>
             {{ form.phone }}
             {% if form.phone.errors %}<div class="field-errors">{{ form.phone.errors|join:", " }}</div>{% endif %}
-            {% if jenga_live %}
-              <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an STK push prompt on this number to complete payment.</p>
+            {% if stk_enabled %}
+              <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">You'll get an M-Pesa prompt on this number - enter your PIN to complete payment.</p>
             {% else %}
               <p style="color: var(--stone); font-size: 13px; margin-top: 6px;">We'll use this number to confirm your order and guide you through M-Pesa payment on WhatsApp.</p>
             {% endif %}
@@ -392,7 +392,7 @@
         </div>
       </div>
 
-      {% if jenga_live %}
+      {% if stk_enabled %}
         <button type="submit" form="checkoutForm" class="btn btn-block" id="checkoutSubmitBtn" data-label="Pay KES {amount} with M-Pesa">Pay KES {{ cart.get_total_price }} with M-Pesa</button>
       {% else %}
         <button type="submit" form="checkoutForm" class="btn btn-block" id="checkoutSubmitBtn" data-label="Place order — KES {amount}">Place order — KES {{ cart.get_total_price }}</button>
@@ -544,6 +544,8 @@
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "&copy; OpenStreetMap contributors",
       maxZoom: 19,
+      // OSM tile servers reject requests with no Referer (usage policy).
+      referrerPolicy: "strict-origin-when-cross-origin",
     }).addTo(map);
 
     marker = L.marker(DEFAULT_CENTER, { draggable: true }).addTo(map);
@@ -589,7 +591,7 @@
     // Best-effort label for the rider - non-critical if it fails.
     fetch(
       "https://nominatim.openstreetmap.org/reverse?format=json&lat=" + lat + "&lon=" + lng,
-      { headers: { "Accept-Language": "en" } }
+      { headers: { "Accept-Language": "en" }, referrerPolicy: "strict-origin-when-cross-origin" }
     )
       .then(function (res) { return res.ok ? res.json() : null; })
       .then(function (data) {
@@ -693,7 +695,7 @@
       fetch(
         "https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=ke&addressdetails=1&q=" +
           encodeURIComponent(query),
-        { headers: { "Accept-Language": "en" } }
+        { headers: { "Accept-Language": "en" }, referrerPolicy: "strict-origin-when-cross-origin" }
       )
         .then(function (res) {
           if (!res.ok) throw new Error("lookup failed");

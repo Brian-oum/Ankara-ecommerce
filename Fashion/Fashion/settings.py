@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'Africa/Nairobi'
+TIME_ZONE = "Africa/Nairobi"
 
 USE_I18N = True
 
@@ -150,28 +150,6 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-JENGA_LIVE_ENABLED = False   # flip to True once the live account is approved
-
-JENGA_BASE_URL = os.getenv("JENGA_BASE_URL")
-
-JENGA_MERCHANT_CODE = os.getenv("JENGA_MERCHANT_CODE")
-
-JENGA_API_KEY = os.getenv("JENGA_API_KEY")
-
-JENGA_CONSUMER_SECRET = os.getenv("JENGA_CONSUMER_SECRET")
-
-JENGA_CALLBACK_URL = os.getenv("JENGA_CALLBACK_URL")
-
-JENGA_CALLBACK_USERNAME = os.getenv("JENGA_CALLBACK_USERNAME")
-
-JENGA_CALLBACK_PASSWORD = os.getenv("JENGA_CALLBACK_PASSWORD")
-
-JENGA_PRIVATE_KEY = BASE_DIR / os.getenv("JENGA_PRIVATE_KEY")
-
-JENGA_PUBLIC_KEY = BASE_DIR / os.getenv("JENGA_PUBLIC_KEY")
-
-JENGA_ACCOUNT_NUMBER = os.getenv("JENGA_ACCOUNT_NUMBER")
-JENGA_MERCHANT_NAME = os.getenv("JENGA_MERCHANT_NAME")
 WHATSAPP_BUSINESS_NUMBER = os.getenv("WHATSAPP_BUSINESS_NUMBER")
 LOGGING = {
     "version": 1,
@@ -187,3 +165,34 @@ LOGGING = {
 
 AUTOMATION_USERNAME = os.getenv("AUTOMATION_USERNAME")
 AUTOMATION_PASSWORD = os.getenv("AUTOMATION_PASSWORD")
+
+
+# ---------------------------------------------------------------------------
+# M-Pesa via Safaricom Daraja (STK push). Takes priority over Jenga when on.
+# ---------------------------------------------------------------------------
+MPESA_LIVE_ENABLED = os.getenv("MPESA_LIVE_ENABLED", "False").lower() == "true"
+
+# "sandbox" or "production"
+MPESA_ENV = os.getenv("MPESA_ENV", "sandbox")
+
+MPESA_CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
+MPESA_CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
+
+# Paybill/Store number that the STK request is made under, and the Lipa Na
+# M-Pesa Online passkey issued for it (Daraja portal -> your app -> Go Live).
+MPESA_SHORTCODE = os.getenv("MPESA_SHORTCODE")
+MPESA_PASSKEY = os.getenv("MPESA_PASSKEY")
+
+# Paybill:        CustomerPayBillOnline  (PartyB = paybill = shortcode)
+# Till / Buy Goods: CustomerBuyGoodsOnline (PartyB = till number, which
+#                   differs from the store-number shortcode above)
+MPESA_TRANSACTION_TYPE = os.getenv("MPESA_TRANSACTION_TYPE", "CustomerPayBillOnline")
+MPESA_PARTY_B = os.getenv("MPESA_PARTY_B")  # defaults to MPESA_SHORTCODE if unset
+
+# Public HTTPS origin Safaricom can reach, e.g. https://etsirbella.co.ke
+# (use an ngrok/cloudflared URL in development). No trailing path.
+MPESA_CALLBACK_BASE_URL = os.getenv("MPESA_CALLBACK_BASE_URL", "")
+# Long random string that forms part of the callback URL - the only thing
+# stopping strangers from POSTing fake "paid" callbacks. Generate with:
+#   python -c "import secrets; print(secrets.token_urlsafe(32))"
+MPESA_CALLBACK_TOKEN = os.getenv("MPESA_CALLBACK_TOKEN", "")
